@@ -29,14 +29,14 @@ func FillUp(i interface{}) error {
 			continue
 		}
 
-		if err := setValue(t.Field(i), v.Field(i), providers); err != nil {
+		if err := getValue(t.Field(i), v.Field(i), providers); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func setValue(field reflect.StructField, v reflect.Value, providers []valueProvider) error {
+func getValue(field reflect.StructField, v reflect.Value, providers []valueProvider) error {
 	var valStr string
 	for _, fn := range providers {
 		valStr, _ = fn(getJSONTag(field)).(string)
@@ -48,21 +48,57 @@ func setValue(field reflect.StructField, v reflect.Value, providers []valueProvi
 		valStr = getDefaultTag(field)
 	}
 
-	switch v.Kind() {
+	if v.Kind() == reflect.Ptr {
+		return setPtrValue(field.Type.Elem(), v, valStr)
+	}
+	return setValue(field.Type, v, valStr)
+}
+
+func setValue(t reflect.Type, v reflect.Value, val string) error {
+	switch t.Kind() {
 	case reflect.String:
-		v.SetString(valStr)
+		v.SetString(val)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		i, _ := strconv.ParseInt(valStr, 10, 64)
+		i, _ := strconv.ParseInt(val, 10, 64)
 		v.SetInt(i)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		i, _ := strconv.ParseUint(valStr, 10, 64)
+		i, _ := strconv.ParseUint(val, 10, 64)
 		v.SetUint(i)
+	case reflect.Float32, reflect.Float64:
+		f, _ := strconv.ParseFloat(val, 64)
+		v.SetFloat(f)
 	case reflect.Bool:
-		b, _ := strconv.ParseBool(valStr)
+		b, _ := strconv.ParseBool(val)
 		v.SetBool(b)
 	default:
 		return errors.New("unsupported type: " + v.Kind().String())
 	}
+	return nil
+}
 
+func setPtrValue(t reflect.Type, v reflect.Value, val string) error {
+	switch t.Name() {
+	case reflect.String.String():
+		v.Set(reflect.ValueOf(&val))
+	case reflect.Int.String():
+		//reflect.Int8.String(),
+		//reflect.Int16.String(),
+		//reflect.Int32.String(),
+		//reflect.Int64.String():
+		i, _ := strconv.ParseInt(val, 10, 64)
+		ii := int(i)
+		v.Set(reflect.ValueOf(&ii))
+	//case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+	//	i, _ := strconv.ParseUint(val, 10, 64)
+	//	v.SetUint(i)
+	//case reflect.Float32, reflect.Float64:
+	//	f, _ := strconv.ParseFloat(val, 64)
+	//	v.SetFloat(f)
+	//case reflect.Bool:
+	//	b, _ := strconv.ParseBool(val)
+	//	v.SetBool(b)
+	default:
+		return errors.New("unsupported type: " + v.Kind().String())
+	}
 	return nil
 }

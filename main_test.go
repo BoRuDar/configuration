@@ -11,8 +11,11 @@ func TestName(t *testing.T) {
 		Age      int16  `json:"age"`
 		IsDebug  bool   `json:"is_debug"`
 		Obj      struct {
-			One string `json:"one"            default:"defaultValForOne"`
+			One string  `json:"one"            default:"defaultValForOne"`
+			Two float32 `json:"two"            default:"33"`
 		}
+		StrPtr *string `json:"str_ptr"         default:"str_ptr_test"`
+		IntPtr *int    `json:"int_ptr"         default:"234"`
 	}{}
 
 	err := FillUp(&cfg)
@@ -20,4 +23,6 @@ func TestName(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("%+v", cfg)
+	t.Log(*cfg.StrPtr)
+	t.Log(*cfg.IntPtr)
 }
