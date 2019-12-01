@@ -8,7 +8,7 @@ func TestName(t *testing.T) {
 	cfg := struct {
 		Name     string `json:"name"          default:"test"`
 		LastName string `json:"last_name"     default:"defaultVal"`
-		Age      byte   `json:"age"`
+		Age      byte   `json:"age"           env:"AGE_ENV"`
 		IsDebug  bool   `json:"is_debug"`
 		Obj      struct {
 			One string  `json:"one"            default:"defaultValForOne"`

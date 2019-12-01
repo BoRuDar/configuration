@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	"flag"
 	"os"
 	"reflect"
 	"strings"
@@ -20,11 +21,9 @@ func provideFromDefault(field reflect.StructField, v reflect.Value) bool {
 
 func provideFromEnv(field reflect.StructField, v reflect.Value) bool {
 	key := getEnvTag(field)
-
 	if len(key) == 0 { // if "env" is not set try to use regular json tag
 		key = strings.ToUpper(getJSONTag(field))
 	}
-
 	if len(key) == 0 {
 		// field doesn't have a proper tag
 		return false
@@ -41,7 +40,21 @@ func provideFromEnv(field reflect.StructField, v reflect.Value) bool {
 
 var flags []interface{} //todo
 
-//func provideFromFlags(key string) interface{} {
-//	panic("not implemented")
-//	return nil
-//}
+func provideFromFlags(field reflect.StructField, v reflect.Value) bool {
+	key := getFlagTag(field)
+	if len(key) == 0 { // if "flag" is not set try to use regular json tag
+		key = getJSONTag(field)
+	}
+	if len(key) == 0 {
+		// field doesn't have a proper tag
+		return false
+	}
+
+	valStr := flag.String(key, "", "")
+	if valStr == nil || len(*valStr) == 0 {
+		return false
+	}
+
+	setField(field, v, *valStr)
+	return true
+}

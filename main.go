@@ -10,6 +10,7 @@ func FillUp(i interface{}) error {
 		t         = reflect.TypeOf(i)
 		v         = reflect.ValueOf(i)
 		providers = []valueProvider{
+			provideFromFlags,
 			provideFromEnv,
 			provideFromDefault,
 		}
