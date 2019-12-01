@@ -9,7 +9,10 @@ func FillUp(i interface{}) error {
 	var (
 		t         = reflect.TypeOf(i)
 		v         = reflect.ValueOf(i)
-		providers = []valueProvider{provideFromEnv}
+		providers = []valueProvider{
+			provideFromEnv,
+			provideFromDefault,
+		}
 	)
 
 	switch t.Kind() {
@@ -28,31 +31,23 @@ func FillUp(i interface{}) error {
 			continue
 		}
 
-		if err := setField_rename_me(t.Field(i), v.Field(i), providers); err != nil {
-			return err
-		}
+		applyProviders(t.Field(i), v.Field(i), providers)
 	}
 	return nil
 }
 
-func setField_rename_me(field reflect.StructField, v reflect.Value, providers []valueProvider) error {
-	var valStr string
+func applyProviders(field reflect.StructField, v reflect.Value, providers []valueProvider) {
 	for _, fn := range providers {
-		valStr, _ = fn(getJSONTag(field)).(string)
-		if len(valStr) > 0 {
-			break
+		if fn(field, v) {
+			return
 		}
 	}
-	if len(valStr) == 0 {
-		valStr = getDefaultTag(field)
-	}
-
-	return setField(field, v, valStr)
 }
 
-func setField(field reflect.StructField, v reflect.Value, valStr string) error {
+func setField(field reflect.StructField, v reflect.Value, valStr string) {
 	if v.Kind() == reflect.Ptr {
-		return setPtrValue(field.Type.Elem(), v, valStr)
+		setPtrValue(field.Type.Elem(), v, valStr)
+		return
 	}
-	return setValue(field.Type, v, valStr)
+	setValue(field.Type, v, valStr)
 }

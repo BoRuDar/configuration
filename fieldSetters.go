@@ -1,12 +1,11 @@
 package configuration
 
 import (
-	"errors"
 	"reflect"
 	"strconv"
 )
 
-func setValue(t reflect.Type, v reflect.Value, val string) error {
+func setValue(t reflect.Type, v reflect.Value, val string) {
 	switch t.Kind() {
 	case reflect.String:
 		v.SetString(val)
@@ -23,12 +22,11 @@ func setValue(t reflect.Type, v reflect.Value, val string) error {
 		b, _ := strconv.ParseBool(val)
 		v.SetBool(b)
 	default:
-		return errors.New("unsupported type: " + v.Kind().String())
+		panic("unsupported type: " + v.Kind().String())
 	}
-	return nil
 }
 
-func setPtrValue(t reflect.Type, v reflect.Value, val string) error {
+func setPtrValue(t reflect.Type, v reflect.Value, val string) {
 	switch t.Name() {
 	case reflect.Int.String(): // doesn't care about 32bit systems
 		if i64, err := strconv.ParseInt(val, 10, 64); err == nil {
@@ -99,7 +97,6 @@ func setPtrValue(t reflect.Type, v reflect.Value, val string) error {
 			v.Set(reflect.ValueOf(&b))
 		}
 	default:
-		return errors.New("unsupported type: " + t.Name())
+		panic("unsupported type: " + t.Name())
 	}
-	return nil
 }
