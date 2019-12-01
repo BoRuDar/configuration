@@ -29,14 +29,14 @@ func FillUp(i interface{}) error {
 			continue
 		}
 
-		if err := getValue(t.Field(i), v.Field(i), providers); err != nil {
+		if err := setField(t.Field(i), v.Field(i), providers); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func getValue(field reflect.StructField, v reflect.Value, providers []valueProvider) error {
+func setField(field reflect.StructField, v reflect.Value, providers []valueProvider) error {
 	var valStr string
 	for _, fn := range providers {
 		valStr, _ = fn(getJSONTag(field)).(string)
@@ -147,7 +147,7 @@ func setPtrValue(t reflect.Type, v reflect.Value, val string) error {
 			v.Set(reflect.ValueOf(&b))
 		}
 	default:
-		return errors.New("unsupported type: " + v.Kind().String())
+		return errors.New("unsupported type: " + t.Name())
 	}
 	return nil
 }
