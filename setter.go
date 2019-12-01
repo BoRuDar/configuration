@@ -78,25 +78,29 @@ func setValue(t reflect.Type, v reflect.Value, val string) error {
 
 func setPtrValue(t reflect.Type, v reflect.Value, val string) error {
 	switch t.Name() {
-	case reflect.String.String():
-		v.Set(reflect.ValueOf(&val))
 	case reflect.Int.String():
 		//reflect.Int8.String(),
 		//reflect.Int16.String(),
 		//reflect.Int32.String(),
 		//reflect.Int64.String():
-		i, _ := strconv.ParseInt(val, 10, 64)
-		ii := int(i)
-		v.Set(reflect.ValueOf(&ii))
+		if i, err := strconv.ParseInt(val, 10, 64); err == nil {
+			ii := int(i)
+			v.Set(reflect.ValueOf(&ii))
+		}
+	case reflect.String.String():
+		if len(val) > 0 {
+			v.Set(reflect.ValueOf(&val))
+		}
 	//case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 	//	i, _ := strconv.ParseUint(val, 10, 64)
 	//	v.SetUint(i)
 	//case reflect.Float32, reflect.Float64:
 	//	f, _ := strconv.ParseFloat(val, 64)
 	//	v.SetFloat(f)
-	//case reflect.Bool:
-	//	b, _ := strconv.ParseBool(val)
-	//	v.SetBool(b)
+	case reflect.Bool.String():
+		if b, err := strconv.ParseBool(val); err == nil {
+			v.Set(reflect.ValueOf(&b))
+		}
 	default:
 		return errors.New("unsupported type: " + v.Kind().String())
 	}
