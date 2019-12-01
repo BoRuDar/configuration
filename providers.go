@@ -12,6 +12,9 @@ func provideFromEnv(key string) interface{} {
 	return v
 }
 
+var flags []interface{} //todo
+
 func provideFromFlags(key string) interface{} {
+	panic("not implemented")
 	return nil
 }

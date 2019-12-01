@@ -28,14 +28,14 @@ func FillUp(i interface{}) error {
 			continue
 		}
 
-		if err := setField(t.Field(i), v.Field(i), providers); err != nil {
+		if err := setField_rename_me(t.Field(i), v.Field(i), providers); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func setField(field reflect.StructField, v reflect.Value, providers []valueProvider) error {
+func setField_rename_me(field reflect.StructField, v reflect.Value, providers []valueProvider) error {
 	var valStr string
 	for _, fn := range providers {
 		valStr, _ = fn(getJSONTag(field)).(string)
@@ -47,6 +47,10 @@ func setField(field reflect.StructField, v reflect.Value, providers []valueProvi
 		valStr = getDefaultTag(field)
 	}
 
+	return setField(field, v, valStr)
+}
+
+func setField(field reflect.StructField, v reflect.Value, valStr string) error {
 	if v.Kind() == reflect.Ptr {
 		return setPtrValue(field.Type.Elem(), v, valStr)
 	}
