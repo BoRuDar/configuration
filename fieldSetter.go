@@ -5,6 +5,14 @@ import (
 	"strconv"
 )
 
+func setField(field reflect.StructField, v reflect.Value, valStr string) {
+	if v.Kind() == reflect.Ptr {
+		setPtrValue(field.Type.Elem(), v, valStr)
+		return
+	}
+	setValue(field.Type, v, valStr)
+}
+
 func setValue(t reflect.Type, v reflect.Value, val string) {
 	switch t.Kind() {
 	case reflect.String:

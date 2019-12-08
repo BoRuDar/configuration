@@ -41,15 +41,19 @@ func (fp flagProvider) initFlagProvider(i interface{}) {
 
 func (fp flagProvider) getValFromFlags(field reflect.StructField) {
 	key := getFlagTag(field)
-	if len(key) == 0 { // if "flag" is not set try to use regular json tag
+	if len(key) == 0 {
+		logf("flagProvider: getFlagTag returns empty value")
+		// if "flag" is not set try to use regular json tag
 		key = getJSONTag(field)
 	}
 	if len(key) == 0 {
+		logf("flagProvider: key [%s] is empty", key)
 		// field doesn't have a proper tag
 		return
 	}
 
 	if _, ok := fp.flags[key]; ok {
+		logf("flagProvider: cannot find value for key [%s]", key)
 		return
 	}
 
@@ -61,24 +65,30 @@ func (fp flagProvider) getValFromFlags(field reflect.StructField) {
 
 func (fp flagProvider) Provide(field reflect.StructField, v reflect.Value) bool {
 	key := getFlagTag(field)
-	if len(key) == 0 { // if "flag" is not set try to use regular json tag
+	if len(key) == 0 {
+		logf("flagProvider: getFlagTag returns empty value")
+		// if "flag" is not set try to use regular json tag
 		key = getJSONTag(field)
 	}
 	if len(key) == 0 {
-		// field doesn't have a proper tag
+		logf("flagProvider: key is empty")
+		// field doesn't have proper tags
 		return false
 	}
 
 	if len(fp.flags) == 0 {
+		logf("flagProvider: map of flags is empty, nothing to fetch")
 		return false
 	}
 
 	fn, ok := fp.flags[key]
 	if !ok {
+		logf("flagProvider: flag for key [%s] already exists", key)
 		return false
 	}
 
 	val := fn()
 	setField(field, v, *val)
+	logf("flagProvider: set [%s] to field [%s] with tags [%v]", *val, field.Name, field.Tag)
 	return len(*val) > 0
 }

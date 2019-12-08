@@ -5,7 +5,12 @@ import (
 	"reflect"
 )
 
-func New(cfgPtr interface{}, providers []Provider) (configurator, error) {
+func New(
+	cfgPtr interface{},
+	providers []Provider,
+	loggingEnabled bool,
+	failIfCannotSet bool,
+) (configurator, error) {
 	if len(providers) == 0 {
 		return configurator{}, errors.New("providers not found")
 	}
@@ -13,6 +18,9 @@ func New(cfgPtr interface{}, providers []Provider) (configurator, error) {
 	if reflect.TypeOf(cfgPtr).Kind() != reflect.Ptr {
 		return configurator{}, errors.New("not a pointer to the struct")
 	}
+
+	gLoggingEnabled = loggingEnabled
+	gFailIfCannotSet = failIfCannotSet
 
 	return configurator{
 		config:    cfgPtr,
@@ -25,7 +33,7 @@ type configurator struct {
 	providers []Provider
 }
 
-func (c configurator) FillUp() error {
+func (c configurator) InitValue() error {
 	return c.fillUp(c.config)
 }
 
@@ -59,12 +67,6 @@ func (c configurator) applyProviders(field reflect.StructField, v reflect.Value)
 			return
 		}
 	}
-}
-
-func setField(field reflect.StructField, v reflect.Value, valStr string) {
-	if v.Kind() == reflect.Ptr {
-		setPtrValue(field.Type.Elem(), v, valStr)
-		return
-	}
-	setValue(field.Type, v, valStr)
+	logf("configurator: field [%s] with tags [%v] cannot be set!", field.Name, field.Tag)
+	fail()
 }

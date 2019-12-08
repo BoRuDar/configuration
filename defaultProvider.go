@@ -1,7 +1,6 @@
 package configuration
 
 import (
-	"log"
 	"reflect"
 )
 
@@ -14,10 +13,11 @@ type defaultProvider struct{}
 func (defaultProvider) Provide(field reflect.StructField, v reflect.Value) bool {
 	valStr := getDefaultTag(field)
 	if len(valStr) == 0 {
-		log.Println("defaultProvider: ", valStr)
+		logf("defaultProvider: getDefaultTag returns empty value")
 		return false
 	}
 
 	setField(field, v, valStr)
+	logf("defaultProvider: set [%s] to field [%s] with tags [%v]", valStr, field.Name, field.Tag)
 	return true
 }
