@@ -21,10 +21,17 @@ func main() {
 		BoolPtr *bool   `json:"bool_ptr"        default:"true"`
 	}{}
 
-	err := configuration.FillUp(&cfg, []configuration.Provider{
+	configurator, err := configuration.New(&cfg, []configuration.Provider{
 		configuration.NewFlagProvider(&cfg),
 		configuration.NewEnvProvider(),
 		configuration.NewDefaultProvider(),
 	})
-	fmt.Printf("err: %v ||| %+v", err, cfg)
+	if err != nil {
+		panic(err)
+	}
+	if err = configurator.FillUp(); err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%+v", cfg)
 }
