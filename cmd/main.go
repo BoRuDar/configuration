@@ -25,7 +25,7 @@ func main() {
 		configuration.NewFlagProvider(&cfg),
 		configuration.NewEnvProvider(),
 		configuration.NewDefaultProvider(),
-	}, true, false)
+	}, false, false)
 	if err != nil {
 		panic(err)
 	}

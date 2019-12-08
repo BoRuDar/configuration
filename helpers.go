@@ -2,7 +2,6 @@ package configuration
 
 import (
 	"log"
-	"os"
 )
 
 var (
@@ -16,8 +15,8 @@ func logf(format string, args ...interface{}) {
 	}
 }
 
-func fail() {
+func fail(format string, args ...interface{}) {
 	if gFailIfCannotSet {
-		os.Exit(1)
+		log.Fatalf(format, args...)
 	}
 }

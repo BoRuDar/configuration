@@ -64,9 +64,10 @@ func (c configurator) fillUp(i interface{}) error {
 func (c configurator) applyProviders(field reflect.StructField, v reflect.Value) {
 	for _, provider := range c.providers {
 		if provider.Provide(field, v) {
+			logf("\n")
 			return
 		}
 	}
 	logf("configurator: field [%s] with tags [%v] cannot be set!", field.Name, field.Tag)
-	fail()
+	fail("configurator: field [%s] with tags [%v] cannot be set!", field.Name, field.Tag)
 }
