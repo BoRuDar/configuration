@@ -5,15 +5,14 @@ import (
 	"reflect"
 )
 
-func FillUp(i interface{}) error {
+type Provider interface {
+	Provide(field reflect.StructField, v reflect.Value) bool
+}
+
+func FillUp(i interface{}, providers []Provider) error {
 	var (
-		t         = reflect.TypeOf(i)
-		v         = reflect.ValueOf(i)
-		providers = []valueProvider{
-			provideFromFlags,
-			provideFromEnv,
-			provideFromDefault,
-		}
+		t = reflect.TypeOf(i)
+		v = reflect.ValueOf(i)
 	)
 
 	switch t.Kind() {
@@ -26,7 +25,7 @@ func FillUp(i interface{}) error {
 
 	for i := 0; i < t.NumField(); i++ {
 		if t.Field(i).Type.Kind() == reflect.Struct {
-			if err := FillUp(v.Field(i).Addr().Interface()); err != nil {
+			if err := FillUp(v.Field(i).Addr().Interface(), providers); err != nil {
 				return err
 			}
 			continue
@@ -37,9 +36,9 @@ func FillUp(i interface{}) error {
 	return nil
 }
 
-func applyProviders(field reflect.StructField, v reflect.Value, providers []valueProvider) {
-	for _, fn := range providers {
-		if fn(field, v) {
+func applyProviders(field reflect.StructField, v reflect.Value, providers []Provider) {
+	for _, provider := range providers {
+		if provider.Provide(field, v) {
 			return
 		}
 	}

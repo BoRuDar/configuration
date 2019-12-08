@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 
 	"github.com/BoRuDar/configuration"
@@ -9,7 +8,7 @@ import (
 
 func main() {
 	cfg := struct {
-		Name     string `json:"name"  flag:"name"        default:"defaultName"`
+		Name     string `json:"name"          default:"defaultName"         flag:"name"`
 		LastName string `json:"last_name"     default:"defaultLastName"`
 		Age      byte   `json:"age"           env:"AGE_ENV"`
 		IsDebug  bool   `json:"is_debug"`
@@ -22,9 +21,10 @@ func main() {
 		BoolPtr *bool   `json:"bool_ptr"        default:"true"`
 	}{}
 
-	configuration.NewProviderFromFlags(&cfg)
-	flag.Parse()
-
-	err := configuration.FillUp(&cfg)
+	err := configuration.FillUp(&cfg, []configuration.Provider{
+		configuration.NewFlagProvider(&cfg),
+		configuration.NewEnvProvider(),
+		configuration.NewDefaultProvider(),
+	})
 	fmt.Printf("err: %v ||| %+v", err, cfg)
 }
