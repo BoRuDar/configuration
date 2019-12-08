@@ -27,7 +27,7 @@ func TestName(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	if err = configurator.InitValue(); err != nil {
+	if err = configurator.InitValues(); err != nil {
 		panic(err)
 	}
 
