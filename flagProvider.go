@@ -5,9 +5,9 @@ import (
 	"reflect"
 )
 
-func NewFlagProvider(i interface{}) flagProvider {
+func NewFlagProvider(ptrToCfg interface{}) flagProvider {
 	fp := flagProvider{flags: map[string]func() *string{}}
-	fp.initFlagProvider(i)
+	fp.initFlagProvider(ptrToCfg)
 	flag.Parse()
 	return fp
 }
