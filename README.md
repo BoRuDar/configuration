@@ -90,3 +90,4 @@ Looks for `flag` tag and tries to set value from the command line flag `-name`
 ```
 If `flag` tag is not found it will try to use value from `json` tag.
 Name inside tag `flag:"<name>"` must be unique for each field.
+`NewFlagProvider(&cfg)` expects a pointer to the same object for initialization.
