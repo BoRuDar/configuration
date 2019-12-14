@@ -49,14 +49,25 @@ func (c configurator) fillUp(i interface{}) error {
 	}
 
 	for i := 0; i < t.NumField(); i++ {
-		if t.Field(i).Type.Kind() == reflect.Struct {
-			if err := c.fillUp(v.Field(i).Addr().Interface()); err != nil {
+		tField := t.Field(i)
+		vField := v.Field(i)
+
+		if tField.Type.Kind() == reflect.Struct {
+			if err := c.fillUp(vField.Elem().Addr().Interface()); err != nil {
 				return err
 			}
 			continue
 		}
 
-		c.applyProviders(t.Field(i), v.Field(i))
+		if tField.Type.Kind() == reflect.Ptr && tField.Type.Elem().Kind() == reflect.Struct {
+			v.Field(i).Set(reflect.New(tField.Type.Elem()))
+			if err := c.fillUp(vField.Interface()); err != nil {
+				return err
+			}
+			continue
+		}
+
+		c.applyProviders(tField, vField)
 	}
 	return nil
 }
