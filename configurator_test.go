@@ -39,7 +39,7 @@ func TestConfigurator(t *testing.T) {
 		NewFlagProvider(&cfg),
 		NewEnvProvider(),
 		NewDefaultProvider(),
-	}, false, false)
+	}, true, true)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
