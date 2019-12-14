@@ -53,7 +53,7 @@ func (c configurator) fillUp(i interface{}) {
 		vField := v.Field(i)
 
 		if tField.Type.Kind() == reflect.Struct {
-			c.fillUp(vField.Elem().Addr().Interface())
+			c.fillUp(vField.Addr().Interface())
 			continue
 		}
 
