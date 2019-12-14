@@ -48,9 +48,7 @@ Next fields' types are supported:
     if err != nil {
         panic(err)
     }
-    if err = configurator.InitValues(); err != nil {
-        panic(err)
-    }
+    configurator.InitValues()
 ```
 
 
