@@ -33,11 +33,11 @@ type configurator struct {
 	providers []Provider
 }
 
-func (c configurator) InitValues() error {
-	return c.fillUp(c.config)
+func (c configurator) InitValues() {
+	c.fillUp(c.config)
 }
 
-func (c configurator) fillUp(i interface{}) error {
+func (c configurator) fillUp(i interface{}) {
 	var (
 		t = reflect.TypeOf(i)
 		v = reflect.ValueOf(i)
@@ -53,23 +53,18 @@ func (c configurator) fillUp(i interface{}) error {
 		vField := v.Field(i)
 
 		if tField.Type.Kind() == reflect.Struct {
-			if err := c.fillUp(vField.Elem().Addr().Interface()); err != nil {
-				return err
-			}
+			c.fillUp(vField.Elem().Addr().Interface())
 			continue
 		}
 
 		if tField.Type.Kind() == reflect.Ptr && tField.Type.Elem().Kind() == reflect.Struct {
-			v.Field(i).Set(reflect.New(tField.Type.Elem()))
-			if err := c.fillUp(vField.Interface()); err != nil {
-				return err
-			}
+			vField.Set(reflect.New(tField.Type.Elem()))
+			c.fillUp(vField.Interface())
 			continue
 		}
 
 		c.applyProviders(tField, vField)
 	}
-	return nil
 }
 
 func (c configurator) applyProviders(field reflect.StructField, v reflect.Value) {
