@@ -33,7 +33,7 @@ type configurator struct {
 	providers []Provider
 }
 
-func (c configurator) InitValue() error {
+func (c configurator) InitValues() error {
 	return c.fillUp(c.config)
 }
 
@@ -43,7 +43,7 @@ func (c configurator) fillUp(i interface{}) error {
 		v = reflect.ValueOf(i)
 	)
 
-	if reflect.TypeOf(i).Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 		v = v.Elem()
 	}
