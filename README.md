@@ -55,6 +55,24 @@ Next fields' types are supported:
 
 
 # Providers
+You can specify one or more providers. They will be executed in order of definition:
+```go
+[]Provider{
+    NewFlagProvider(&cfg), // 1
+    NewEnvProvider(), // 2
+    NewDefaultProvider(), // 3
+} 
+```
+If provider set value successfully next ones will not be executed (if flag provider from the sample above found a value env and default providers are skipped). 
+The value of first successfully executed provider will be set.
+If none of providers found value - "zero" value of a field remains.
+You can define a custom provider which should satisfy next interface:
+```go
+type Provider interface {
+	Provide(field reflect.StructField, v reflect.Value) bool
+}
+```
+
 ### Default provider
 Looks for `default` tag and set value from it:
 ```go
