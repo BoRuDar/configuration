@@ -14,7 +14,7 @@ Next fields' types are supported:
 - `*uint`, `*uint8`, `*uint16`, `*uint32`, `*uint64`
 - `float32`, `float64`,
 - `*float32`, `*float64`,
-- another structs and pointers to them
+- embedded structs
 
 # Quick start
 
