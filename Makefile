@@ -1,5 +1,5 @@
 APP_NAME="PlayersProfile"
-COVERAGE_FILE="coverage.out"
+COVERAGE_FILE="coverage.txt"
 
 test:
 	go test -v -cover -coverprofile=$(COVERAGE_FILE)  ./...
