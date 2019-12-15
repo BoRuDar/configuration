@@ -7,7 +7,7 @@ Available features :
 - setting values from *environment* variables - `NewEnvProvider()`
 - setting values from command line *flags* - `NewFlagProvider(&cfg)`
 
-Next fields' types are supported:
+Supported types:
 - `string`, `*string`
 - `bool`, `*bool`
 - `int`, `int8`, `int16`, `int32`, `int64`
