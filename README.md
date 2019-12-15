@@ -2,10 +2,10 @@
 
 # Configuration
 is a library for injecting values recursively into structs - a convinient way of setting up a configuration object.
-Currently supports next features:
-- setting *default* values for struct fields (`NewDefaultProvider()`)
-- setting values from *environment* variables (`NewEnvProvider()`)
-- setting values from command line *flags* (`NewFlagProvider(&cfg)`)
+Available features :
+- setting *default* values for struct fields - `NewDefaultProvider()`
+- setting values from *environment* variables - `NewEnvProvider()`
+- setting values from command line *flags* - `NewFlagProvider(&cfg)`
 
 Next fields' types are supported:
 - `string`, `*string`
