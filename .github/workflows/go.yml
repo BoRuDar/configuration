@@ -22,11 +22,11 @@ jobs:
 
     - name: Test
       run: |
-        make test
-        ls
+        go test -v -cover -coverprofile="./coverage.out" -covermode=atomic
     
     - uses: actions/checkout@master
     - uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: ./coverage.out
+        fail_ci_if_error: true
