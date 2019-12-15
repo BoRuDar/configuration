@@ -21,7 +21,9 @@ jobs:
         go get -v -t -d ./...
 
     - name: Test
-      run: make test
+      run: |
+        make test
+        ls
     
     - uses: actions/checkout@master
     - uses: codecov/codecov-action@v1
