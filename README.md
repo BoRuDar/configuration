@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/BoRuDar/configuration/branch/master/graph/badge.svg)](https://codecov.io/gh/BoRuDar/configuration)
+
 # Configuration
 is a library for injecting values recursively into structs - a convinient way of setting up a configuration object.
 Currently supports next features:
