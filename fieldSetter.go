@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-func setField(field reflect.StructField, v reflect.Value, valStr string) {
+func SetField(field reflect.StructField, v reflect.Value, valStr string) {
 	if v.Kind() == reflect.Ptr {
 		setPtrValue(field.Type.Elem(), v, valStr)
 		return

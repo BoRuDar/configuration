@@ -88,7 +88,7 @@ func (fp flagProvider) Provide(field reflect.StructField, v reflect.Value) bool 
 	}
 
 	val := fn()
-	setField(field, v, *val)
+	SetField(field, v, *val)
 	logf("flagProvider: set [%s] to field [%s] with tags [%v]", *val, field.Name, field.Tag)
 	return len(*val) > 0
 }

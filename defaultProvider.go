@@ -17,7 +17,7 @@ func (defaultProvider) Provide(field reflect.StructField, v reflect.Value) bool 
 		return false
 	}
 
-	setField(field, v, valStr)
+	SetField(field, v, valStr)
 	logf("defaultProvider: set [%s] to field [%s] with tags [%v]", valStr, field.Name, field.Tag)
 	return true
 }
