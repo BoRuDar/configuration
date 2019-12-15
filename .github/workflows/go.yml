@@ -1,12 +1,10 @@
 name: Go
 on: [push]
 jobs:
-
   build:
     name: Build
     runs-on: ubuntu-latest
     steps:
-
     - name: Set up Go 1.13
       uses: actions/setup-go@v1
       with:
@@ -14,7 +12,7 @@ jobs:
       id: go
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v1
+      uses: actions/checkout@master
 
     - name: Get dependencies
       run: |
@@ -24,7 +22,6 @@ jobs:
       run: |
         go test -v -cover -coverprofile="./coverage.out" -covermode=atomic
     
-    - uses: actions/checkout@master
     - uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
