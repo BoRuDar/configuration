@@ -1,12 +1,10 @@
 name: Go
 on: [push]
 jobs:
-
   build:
     name: Build
     runs-on: ubuntu-latest
     steps:
-
     - name: Set up Go 1.13
       uses: actions/setup-go@v1
       with:
@@ -21,9 +19,12 @@ jobs:
         go get -v -t -d ./...
 
     - name: Test
-      run: make test
+      run: |
+        go test -v -cover -coverprofile="./coverage.out" -covermode=atomic
+        ls
     
-    - uses: actions/checkout@master
     - uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.out
+        fail_ci_if_error: true
