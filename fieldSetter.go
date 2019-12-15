@@ -106,6 +106,6 @@ func setPtrValue(t reflect.Type, v reflect.Value, val string) {
 			v.Set(reflect.ValueOf(&b))
 		}
 	default:
-		panic("unsupported type: " + t.Name())
+		panic("unsupported type: " + t.Kind().String())
 	}
 }

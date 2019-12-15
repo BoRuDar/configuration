@@ -257,3 +257,23 @@ func TestSetPtrValue_Bool(t *testing.T) {
 		t.Fatalf("\nexpected result: [%s] \nbut got: [%v]", testValue, testBool)
 	}
 }
+
+func TestSetPtrValue_Invalid(t *testing.T) {
+	var testInvalidVal chan struct{}
+	fieldType := reflect.TypeOf(&testInvalidVal).Elem()
+	fieldVal := reflect.ValueOf(&testInvalidVal).Elem()
+	testValue := "...invalid value{}"
+	expectedPanicStr := `unsupported type: chan`
+
+	defer func() {
+		recoveredPanic := recover()
+		if recoveredPanic == nil {
+			t.Fatalf("panic is expected")
+		}
+		if recoveredPanic != expectedPanicStr {
+			t.Fatalf("expected panic msg [%s] \nbut got [%s]", expectedPanicStr, recoveredPanic)
+		}
+	}()
+
+	setPtrValue(fieldType, fieldVal, testValue)
+}
