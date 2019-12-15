@@ -33,6 +33,22 @@ func TestEnvProvider(t *testing.T) {
 	}
 }
 
+func TestEnvProviderFailed(t *testing.T) {
+	type testStruct struct {
+		Name string `env:"ENV_KEY1"`
+	}
+	testObj := testStruct{}
+
+	fieldType := reflect.TypeOf(&testObj).Elem().Field(0)
+	fieldVal := reflect.ValueOf(&testObj).Elem().Field(0)
+
+	provider := NewEnvProvider()
+
+	if provider.Provide(fieldType, fieldVal) {
+		t.Fatal("must be false")
+	}
+}
+
 func setEnv(key, val string) (func(), error) {
 	return func() {
 		_ = os.Unsetenv(key)

@@ -87,12 +87,13 @@ func setPtrValue(t reflect.Type, v reflect.Value, val string) {
 		}
 
 	case reflect.Float32.String():
-		if f32, err := strconv.ParseFloat(val, 32); err == nil {
-			v.SetFloat(f32)
+		if f64, err := strconv.ParseFloat(val, 32); err == nil {
+			f32 := float32(f64)
+			v.Set(reflect.ValueOf(&f32))
 		}
 	case reflect.Float64.String():
 		if f64, err := strconv.ParseFloat(val, 64); err == nil {
-			v.SetFloat(f64)
+			v.Set(reflect.ValueOf(&f64))
 		}
 
 	case reflect.String.String():
