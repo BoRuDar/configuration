@@ -1,25 +1,29 @@
 package configuration
 
 import (
-	"os"
 	"reflect"
 	"testing"
 )
 
 func TestFileProvider(t *testing.T) {
 	type testStruct struct {
-		Name string `json:"key_name"`
+		Name   string
+		Inside struct {
+			Beta int
+		}
 	}
-	expectedValue := "test_val"
 
-	file, err := os.Open("./json_sample.json")
-	if err != nil {
-		t.Fatalf("cannot open test file: %v", err)
+	expected := testStruct{
+		Name: "test_name_json",
+		Inside: struct {
+			Beta int
+		}{
+			Beta: 42,
+		},
 	}
-	defer file.Close()
 
 	testObj := testStruct{}
-	provider := NewFileProvider(&testObj, file)
+	provider := NewFileProvider(&testObj, "./testdata/input.json")
 
 	fieldType := reflect.TypeOf(&testObj).Elem().Field(0)
 	fieldVal := reflect.ValueOf(&testObj).Elem().Field(0)
@@ -28,7 +32,7 @@ func TestFileProvider(t *testing.T) {
 		t.Fatal("cannot set value")
 	}
 
-	if !reflect.DeepEqual(expectedValue, testObj.Name) {
-		t.Fatalf("\nexpected result: [%s] \nbut got: [%s]", expectedValue, testObj.Name)
+	if !reflect.DeepEqual(expected, testObj) {
+		t.Fatalf("\nexpected result: [%+v] \nbut got: [%+v]", expected, testObj)
 	}
 }

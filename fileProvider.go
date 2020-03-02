@@ -2,33 +2,51 @@ package configuration
 
 import (
 	"encoding/json"
-	"io"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
+	"os"
 	"reflect"
+	"strings"
 )
 
-func NewFileProvider(obj interface{}, file io.Reader) fileProvider {
-	if b, err := ioutil.ReadAll(file); err == nil {
-		log.Printf("file: %s\n", b)
+func NewFileProvider(obj interface{}, fileName string) fileProvider {
+	file, err := os.Open(fileName)
+	if err != nil {
+		return fileProvider{}
+	}
+	defer file.Close()
 
-		err = json.Unmarshal(b, obj)
-		if err != nil {
-			log.Fatalf("unmarshall: %v", err)
+	if b, err := ioutil.ReadAll(file); err == nil {
+		if fn := decodeFunc(fileName); fn != nil {
+			err := fn(b, obj)
+			log.Println(err)
 		}
 	}
 
 	return fileProvider{}
 }
 
-type fileProvider struct {
-	r io.Reader
-}
+type fileProvider struct{}
 
 func (fileProvider) Provide(field reflect.StructField, v reflect.Value) bool {
 	log.Println("str: ", v.Interface())
 
-	//SetField(field, v, key)
 	//logf("fileProvider: set [%s] to field [%s] with tags [%v]", key, field.Name, field.Tag)
 	return true
+}
+
+func decodeFunc(fileName string) func(data []byte, v interface{}) error {
+	fileName = strings.ToLower(fileName)
+
+	if strings.HasSuffix(fileName, ".json") {
+		return json.Unmarshal
+	}
+	if strings.HasSuffix(fileName, ".yaml") {
+		return yaml.Unmarshal
+	}
+	if strings.HasSuffix(fileName, ".yml") {
+		return yaml.Unmarshal
+	}
+	return nil
 }
