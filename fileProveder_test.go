@@ -5,16 +5,14 @@ import (
 	"testing"
 )
 
-func TestFileProvider(t *testing.T) {
+func TestFileProvider_yml(t *testing.T) {
 	type testStruct struct {
-		Name   string
 		Inside struct {
 			Beta int
 		}
 	}
 
 	expected := testStruct{
-		Name: "test_name_json",
 		Inside: struct {
 			Beta int
 		}{
@@ -24,11 +22,12 @@ func TestFileProvider(t *testing.T) {
 
 	testObj := testStruct{}
 	provider := NewFileProvider("./testdata/input.yml")
+	fieldPath := []string{"Inside", "Beta"}
 
-	fieldType := reflect.TypeOf(&testObj).Elem().Field(0)
-	fieldVal := reflect.ValueOf(&testObj).Elem().Field(0)
+	fieldType := reflect.TypeOf(&testObj).Elem().Field(0).Type.Field(0)
+	fieldVal := reflect.ValueOf(&testObj).Elem().Field(0).Field(0)
 
-	if !provider.Provide(fieldType, fieldVal) {
+	if !provider.Provide(fieldType, fieldVal, fieldPath...) {
 		t.Fatal("cannot set value")
 	}
 
