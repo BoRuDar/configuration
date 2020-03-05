@@ -42,23 +42,15 @@ func TestFileProvider_yml(t *testing.T) {
 func TestFindValStrByPath(t *testing.T) {
 	var testObjFromYAML interface{}
 	data, _ := yaml.Marshal(testStruct{
-		Name: "test",
-		Inside: struct {
-			Beta int
-		}{
-			Beta: 42,
-		},
+		Name:   "test",
+		Inside: struct{ Beta int }{Beta: 42},
 	})
 	_ = yaml.Unmarshal(data, &testObjFromYAML)
 
 	var testObjFromJSON interface{}
 	data, _ = json.Marshal(testStruct{
-		Name: "test",
-		Inside: struct {
-			Beta int
-		}{
-			Beta: 42,
-		},
+		Name:   "test",
+		Inside: struct{ Beta int }{Beta: 42},
 	})
 	_ = json.Unmarshal(data, &testObjFromJSON)
 
@@ -90,14 +82,14 @@ func TestFindValStrByPath(t *testing.T) {
 			expectedBool: true,
 		},
 		{
-			name:         "substructures | json",
+			name:         "substructures | Inside.Beta | json",
 			input:        testObjFromJSON,
 			path:         []string{"Inside", "Beta"},
 			expectedStr:  "42",
 			expectedBool: true,
 		},
 		{
-			name:         "substructures | yaml",
+			name:         "substructures | Inside.Beta | yaml",
 			input:        testObjFromYAML,
 			path:         []string{"Inside", "Beta"},
 			expectedStr:  "42",
@@ -111,6 +103,36 @@ func TestFindValStrByPath(t *testing.T) {
 			gotStr, gotBool := findValStrByPath(testObjFromYAML, test.path)
 			if gotStr != test.expectedStr || gotBool != test.expectedBool {
 				t.Fatalf("expected: [%q %v] but got [%q %v]", test.expectedStr, test.expectedBool, gotStr, gotBool)
+			}
+		})
+	}
+}
+
+func TestDecodeFunc(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{
+			name:  "json",
+			input: "some_name.json",
+		},
+		{
+			name:  "yaml",
+			input: "some_name.yaml",
+		},
+		{
+			name:  "yml",
+			input: "some_name.yml",
+		},
+	}
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.name, func(t *testing.T) {
+			gotFn := decodeFunc(test.input)
+			if gotFn == nil {
+				t.Fatal("expected function but got nil")
 			}
 		})
 	}

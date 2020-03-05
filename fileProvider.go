@@ -57,11 +57,11 @@ func decodeFunc(fileName string) func(data []byte, v interface{}) error {
 		return yaml.Unmarshal
 	}
 
-	logf("unsupported file type: %s", fileName)
+	logf("fileProvider: unsupported file type: %q", fileName)
 	return nil
 }
 
-func findValStrByPath(i interface{}, path []string) (string, bool) { // todo: tests
+func findValStrByPath(i interface{}, path []string) (string, bool) {
 	if len(path) == 0 {
 		return "", false
 	}
@@ -85,7 +85,11 @@ func findValStrByPath(i interface{}, path []string) (string, bool) { // todo: te
 	}
 
 	if len(path) == 1 {
-		return fmt.Sprint(currentFieldStr[firstInPath]), true
+		val, ok := currentFieldStr[firstInPath]
+		if !ok {
+			return "", false
+		}
+		return fmt.Sprint(val), true
 	}
 
 	return findValStrByPath(currentFieldStr[firstInPath], path[1:])
