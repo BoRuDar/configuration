@@ -65,17 +65,28 @@ func findValStrByPath(i interface{}, path []string) (string, bool) { // todo: te
 	if len(path) == 0 {
 		return "", false
 	}
-
-	currentField, ok := i.(map[interface{}]interface{})
-	if !ok {
-		return "", false
-	}
-
 	firstInPath := strings.ToLower(path[0])
 
-	if len(path) == 1 {
-		return fmt.Sprint(currentField[firstInPath]), true
+	currentFieldStr, ok := i.(map[string]interface{}) // unmarshaled from json
+	if !ok {
+		currentFieldIface, ok := i.(map[interface{}]interface{}) // unmarshaled from yaml
+		if !ok {
+			return "", false
+		}
+
+		currentFieldStr = map[string]interface{}{}
+		for k, v := range currentFieldIface {
+			currentFieldStr[fmt.Sprint(k)] = v
+		}
 	}
 
-	return findValStrByPath(currentField[firstInPath], path[1:])
+	for k, v := range currentFieldStr {
+		currentFieldStr[strings.ToLower(k)] = v
+	}
+
+	if len(path) == 1 {
+		return fmt.Sprint(currentFieldStr[firstInPath]), true
+	}
+
+	return findValStrByPath(currentFieldStr[firstInPath], path[1:])
 }
