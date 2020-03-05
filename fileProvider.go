@@ -10,27 +10,32 @@ import (
 	"strings"
 )
 
-func NewFileProvider(obj interface{}, fileName string) fileProvider {
+func NewFileProvider(fileName string) (fp fileProvider) {
 	file, err := os.Open(fileName)
 	if err != nil {
-		return fileProvider{}
+		return
 	}
 	defer file.Close()
 
 	if b, err := ioutil.ReadAll(file); err == nil {
 		if fn := decodeFunc(fileName); fn != nil {
-			err := fn(b, obj)
-			log.Println(err)
+			err := fn(b, &fp.fileData)
+			if err != nil {
+				log.Println(err)
+			}
 		}
 	}
-
-	return fileProvider{}
+	return
 }
 
-type fileProvider struct{}
+type fileProvider struct {
+	fileData interface{}
+}
 
-func (fileProvider) Provide(field reflect.StructField, v reflect.Value) bool {
-	log.Println("str: ", v.Interface())
+func (fp fileProvider) Provide(field reflect.StructField, v reflect.Value, path ...string) bool {
+	log.Println("val: ", v.Interface())
+	log.Printf("field: %+v\n", v.Interface())
+	log.Println("path: ", path)
 
 	//logf("fileProvider: set [%s] to field [%s] with tags [%v]", key, field.Name, field.Tag)
 	return true

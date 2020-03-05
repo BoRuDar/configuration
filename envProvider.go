@@ -12,7 +12,7 @@ func NewEnvProvider() envProvider {
 
 type envProvider struct{}
 
-func (envProvider) Provide(field reflect.StructField, v reflect.Value) bool {
+func (envProvider) Provide(field reflect.StructField, v reflect.Value, _ ...string) bool {
 	key := getEnvTag(field)
 	if len(key) == 0 { // if "env" is not set try to use regular json tag
 		logf("envProvider: getEnvTag returns empty value")

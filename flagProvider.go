@@ -63,7 +63,7 @@ func (fp flagProvider) getValFromFlags(field reflect.StructField) {
 	}
 }
 
-func (fp flagProvider) Provide(field reflect.StructField, v reflect.Value) bool {
+func (fp flagProvider) Provide(field reflect.StructField, v reflect.Value, _ ...string) bool {
 	key := getFlagTag(field)
 	if len(key) == 0 {
 		logf("flagProvider: getFlagTag returns empty value")

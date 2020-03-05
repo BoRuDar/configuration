@@ -10,7 +10,7 @@ func NewDefaultProvider() defaultProvider {
 
 type defaultProvider struct{}
 
-func (defaultProvider) Provide(field reflect.StructField, v reflect.Value) bool {
+func (defaultProvider) Provide(field reflect.StructField, v reflect.Value, _ ...string) bool {
 	valStr := getDefaultTag(field)
 	if len(valStr) == 0 {
 		logf("defaultProvider: getDefaultTag returns empty value")

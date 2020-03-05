@@ -23,7 +23,7 @@ func TestFileProvider(t *testing.T) {
 	}
 
 	testObj := testStruct{}
-	provider := NewFileProvider(&testObj, "./testdata/input.yml")
+	provider := NewFileProvider("./testdata/input.yml")
 
 	fieldType := reflect.TypeOf(&testObj).Elem().Field(0)
 	fieldVal := reflect.ValueOf(&testObj).Elem().Field(0)
