@@ -37,7 +37,7 @@ func (c configurator) InitValues() {
 	c.fillUp(c.config)
 }
 
-func (c configurator) fillUp(i interface{}) {
+func (c configurator) fillUp(i interface{}, parentPath ...string) {
 	var (
 		t = reflect.TypeOf(i)
 		v = reflect.ValueOf(i)
@@ -49,27 +49,32 @@ func (c configurator) fillUp(i interface{}) {
 	}
 
 	for i := 0; i < t.NumField(); i++ {
-		tField := t.Field(i)
-		vField := v.Field(i)
+		var (
+			tField      = t.Field(i)
+			vField      = v.Field(i)
+			currentPath = append(parentPath, tField.Name)
+		)
 
 		if tField.Type.Kind() == reflect.Struct {
-			c.fillUp(vField.Addr().Interface())
+			c.fillUp(vField.Addr().Interface(), currentPath...)
 			continue
 		}
 
 		if tField.Type.Kind() == reflect.Ptr && tField.Type.Elem().Kind() == reflect.Struct {
 			vField.Set(reflect.New(tField.Type.Elem()))
-			c.fillUp(vField.Interface())
+			c.fillUp(vField.Interface(), currentPath...)
 			continue
 		}
 
-		c.applyProviders(tField, vField)
+		c.applyProviders(tField, vField, currentPath)
 	}
 }
 
-func (c configurator) applyProviders(field reflect.StructField, v reflect.Value) {
+func (c configurator) applyProviders(field reflect.StructField, v reflect.Value, currentPath []string) {
+	logf("configurator: current path: %v", currentPath)
+
 	for _, provider := range c.providers {
-		if provider.Provide(field, v) {
+		if provider.Provide(field, v, currentPath...) {
 			logf("\n")
 			return
 		}

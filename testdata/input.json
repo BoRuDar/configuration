@@ -1,0 +1,6 @@
+{
+  "name": "test_name_json",
+  "inside": {
+    "beta": 42
+  }
+}

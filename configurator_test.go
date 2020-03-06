@@ -31,13 +31,15 @@ func TestConfigurator(t *testing.T) {
 		}
 
 		Obj struct {
-			IntPtr *int16 `json:"int_ptr"         default:"123"`
+			IntPtr  *int16 `json:"int_ptr"         default:"123"`
+			NameYML int    `default:"24"`
 		}
 	}{}
 
 	configurator, err := New(&cfg, []Provider{
 		NewFlagProvider(&cfg),
 		NewEnvProvider(),
+		NewFileProvider("./testdata/input.yml"),
 		NewDefaultProvider(),
 	}, true, true)
 	if err != nil {
@@ -58,4 +60,5 @@ func TestConfigurator(t *testing.T) {
 
 	assert.NotNil(t, cfg.Obj.IntPtr)
 	assert.Equal(t, int16(123), *cfg.Obj.IntPtr)
+	assert.Equal(t, int(42), cfg.Obj.NameYML)
 }
