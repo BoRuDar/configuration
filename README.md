@@ -6,6 +6,7 @@ Available features :
 - setting *default* values for struct fields - `NewDefaultProvider()`
 - setting values from *environment* variables - `NewEnvProvider()`
 - setting values from command line *flags* - `NewFlagProvider(&cfg)`
+- setting values from *files* (JSON or YAML) - `NewFileProvider("./testdata/input.yml")`
 
 Supported types:
 - `string`, `*string`, `[]string`
