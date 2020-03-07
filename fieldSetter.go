@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+const sliceSeparator = ";"
+
 func SetField(field reflect.StructField, v reflect.Value, valStr string) {
 	if v.Kind() == reflect.Ptr {
 		setPtrValue(field.Type.Elem(), v, valStr)
@@ -18,67 +20,76 @@ func setValue(t reflect.Type, v reflect.Value, val string) {
 	switch t.Kind() {
 	case reflect.String:
 		v.SetString(val)
+
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		i, _ := strconv.ParseInt(val, 10, 64)
 		v.SetInt(i)
+
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		i, _ := strconv.ParseUint(val, 10, 64)
 		v.SetUint(i)
+
 	case reflect.Float32, reflect.Float64:
 		f, _ := strconv.ParseFloat(val, 64)
 		v.SetFloat(f)
+
 	case reflect.Bool:
 		b, _ := strconv.ParseBool(val)
 		v.SetBool(b)
 
 	case reflect.Slice:
-		var items []string
-		for _, item := range strings.Split(val, ";") {
-			item = strings.TrimSpace(item)
-			if len(item) > 0 {
-				items = append(items, item)
-			}
-		}
-
-		size := len(items)
-		if size < 2 {
-			return
-		}
-		slice := reflect.MakeSlice(t, size, size)
-
-		switch t.Elem().Kind() {
-		case reflect.String:
-			for i := 0; i < size; i++ {
-				slice.Index(i).SetString(items[i])
-			}
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			for i := 0; i < size; i++ {
-				val, _ := strconv.ParseInt(items[i], 10, 64)
-				slice.Index(i).SetInt(val)
-			}
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			for i := 0; i < size; i++ {
-				val, _ := strconv.ParseUint(items[i], 10, 64)
-				slice.Index(i).SetUint(val)
-			}
-		case reflect.Float32, reflect.Float64:
-			for i := 0; i < size; i++ {
-				val, _ := strconv.ParseFloat(items[i], 64)
-				slice.Index(i).SetFloat(val)
-			}
-		case reflect.Bool:
-			for i := 0; i < size; i++ {
-				val, _ := strconv.ParseBool(items[i])
-				slice.Index(i).SetBool(val)
-			}
-		default:
-			panic("unsupported type of slice item: " + t.Elem().Kind().String())
-		}
-		v.Set(slice)
+		setSlice(t, v, val)
 
 	default:
 		panic("unsupported type: " + v.Kind().String())
 	}
+}
+
+func setSlice(t reflect.Type, v reflect.Value, val string) {
+	var items []string
+	for _, item := range strings.Split(val, sliceSeparator) {
+		item = strings.TrimSpace(item)
+		if len(item) > 0 {
+			items = append(items, item)
+		}
+	}
+
+	size := len(items)
+	if size < 2 {
+		return
+	}
+	slice := reflect.MakeSlice(t, size, size)
+
+	switch t.Elem().Kind() {
+	case reflect.String:
+		for i := 0; i < size; i++ {
+			slice.Index(i).SetString(items[i])
+		}
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		for i := 0; i < size; i++ {
+			val, _ := strconv.ParseInt(items[i], 10, 64)
+			slice.Index(i).SetInt(val)
+		}
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		for i := 0; i < size; i++ {
+			val, _ := strconv.ParseUint(items[i], 10, 64)
+			slice.Index(i).SetUint(val)
+		}
+	case reflect.Float32, reflect.Float64:
+		for i := 0; i < size; i++ {
+			val, _ := strconv.ParseFloat(items[i], 64)
+			slice.Index(i).SetFloat(val)
+		}
+	case reflect.Bool:
+		for i := 0; i < size; i++ {
+			val, _ := strconv.ParseBool(items[i])
+			slice.Index(i).SetBool(val)
+		}
+	default:
+		panic("unsupported type of slice item: " + t.Elem().Kind().String())
+	}
+
+	v.Set(slice)
 }
 
 func setPtrValue(t reflect.Type, v reflect.Value, val string) {

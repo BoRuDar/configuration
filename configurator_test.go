@@ -31,8 +31,10 @@ func TestConfigurator(t *testing.T) {
 		}
 
 		Obj struct {
-			IntPtr  *int16 `json:"int_ptr"         default:"123"`
-			NameYML int    `default:"24"`
+			IntPtr   *int16   `json:"int_ptr"         default:"123"`
+			NameYML  int      `default:"24"`
+			StrSlice []string `default:"one;two"`
+			IntSlice []int64  `default:"3; 4"`
 		}
 	}{}
 
@@ -61,4 +63,6 @@ func TestConfigurator(t *testing.T) {
 	assert.NotNil(t, cfg.Obj.IntPtr)
 	assert.Equal(t, int16(123), *cfg.Obj.IntPtr)
 	assert.Equal(t, int(42), cfg.Obj.NameYML)
+	assert.Equal(t, []string{"one", "two"}, cfg.Obj.StrSlice)
+	assert.Equal(t, []int64{3, 4}, cfg.Obj.IntSlice)
 }
