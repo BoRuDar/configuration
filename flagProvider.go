@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+var showHelpFlag *bool
+
 const flagSeparator = "|"
 
 func NewFlagProvider(ptrToCfg interface{}) flagProvider {
@@ -17,10 +19,14 @@ func NewFlagProvider(ptrToCfg interface{}) flagProvider {
 	}
 	fp.initFlagProvider(ptrToCfg)
 
-	showHelp := flag.Bool("help", false, "")
+	if showHelpFlag == nil {
+		// this overhead is because of strange bug/feature of flag package which breaks tests when
+		// flag.Bool("help", false, "") is called twice in different tests
+		showHelpFlag = flag.Bool("help", false, "")
+	}
 	flag.Parse()
-	fp.help(*showHelp)
 
+	help(*showHelpFlag, fp.flags)
 	return fp
 }
 
@@ -89,7 +95,7 @@ func (fp flagProvider) Provide(field reflect.StructField, v reflect.Value, _ ...
 
 	fn, ok := fp.flagsValues[fd.key]
 	if !ok {
-		logf("flagProvider: flag for key [%s] already exists", fd.key)
+		logf("flagProvider: callback for key [%s] is not found", fd.key)
 		return false
 	}
 
@@ -145,13 +151,13 @@ func (fd flagData) String() string {
 	return fmt.Sprintf("\t-%s\t\t\"%s%s\"", fd.key, usageStr, defaultVal)
 }
 
-func (fp flagProvider) help(enabled bool) {
+func help(enabled bool, flags map[string]*flagData) {
 	if !enabled {
 		return
 	}
 
 	fmt.Println("Flags: ")
-	for _, f := range fp.flags {
+	for _, f := range flags {
 		fmt.Println(f)
 	}
 	os.Exit(0)

@@ -8,6 +8,11 @@ import (
 )
 
 func TestConfigurator(t *testing.T) {
+	defer func() {
+		gFailIfCannotSet = false
+		gLoggingEnabled = false
+	}()
+
 	// setting command line flag
 	os.Args = []string{"smth", "-name=flag_value"}
 
@@ -65,4 +70,32 @@ func TestConfigurator(t *testing.T) {
 	assert.Equal(t, int(42), cfg.Obj.NameYML)
 	assert.Equal(t, []string{"one", "two"}, cfg.Obj.StrSlice)
 	assert.Equal(t, []int64{3, 4}, cfg.Obj.IntSlice)
+}
+
+func TestConfigurator_Errors(t *testing.T) {
+	tests := map[string]struct {
+		input     interface{}
+		providers []Provider
+	}{
+		"empty providers": {
+			input:     &struct{}{},
+			providers: []Provider{},
+		},
+		"non-pointer": {
+			input: struct{}{},
+			providers: []Provider{
+				NewDefaultProvider(),
+			},
+		},
+	}
+
+	for name, test := range tests {
+		test := test
+		t.Run(name, func(t *testing.T) {
+			_, err := New(test.input, test.providers, false, false)
+			if err == nil {
+				t.Fatal("expected error but got nil")
+			}
+		})
+	}
 }
