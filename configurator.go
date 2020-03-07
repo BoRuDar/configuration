@@ -80,5 +80,5 @@ func (c configurator) applyProviders(field reflect.StructField, v reflect.Value,
 		}
 	}
 	logf("configurator: field [%s] with tags [%v] cannot be set!", field.Name, field.Tag)
-	fail("configurator: field [%s] with tags [%v] cannot be set!", field.Name, field.Tag)
+	failf("configurator: field [%s] with tags [%v] cannot be set!", field.Name, field.Tag)
 }
