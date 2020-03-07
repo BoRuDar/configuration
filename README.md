@@ -8,14 +8,14 @@ Available features :
 - setting values from command line *flags* - `NewFlagProvider(&cfg)`
 
 Supported types:
-- `string`, `*string`
-- `bool`, `*bool`
-- `int`, `int8`, `int16`, `int32`, `int64`
+- `string`, `*string`, `[]string`
+- `bool`, `*bool`, `[]bool`
+- `int`, `int8`, `int16`, `int32`, `int64` + slices of these types
 - `*int`, `*int8`, `*int16`, `*int32`, `*int64`
-- `uint`, `uint8`, `uint16`, `uint32`, `uint64`
+- `uint`, `uint8`, `uint16`, `uint32`, `uint64` + slices of these types
 - `*uint`, `*uint8`, `*uint16`, `*uint32`, `*uint64`
-- `float32`, `float64`,
-- `*float32`, `*float64`,
+- `float32`, `float64` + slices of these types
+- `*float32`, `*float64`
 - embedded structs and pointers to structs
 
 # Quick start
