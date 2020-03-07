@@ -15,7 +15,7 @@ func logf(format string, args ...interface{}) {
 	}
 }
 
-func fail(format string, args ...interface{}) {
+func failf(format string, args ...interface{}) {
 	if gFailIfCannotSet {
 		log.Fatalf(format, args...)
 	}

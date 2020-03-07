@@ -110,6 +110,12 @@ If `flag` tag is not found it will try to use value from `json` tag.
 Name inside tag `flag:"<name>"` must be unique for each field.
 `NewFlagProvider(&cfg)` expects a pointer to the same object for initialization.
 
+*Note*: if program is executed with `-help` flag you will see all available flags with description:
+```bash
+Flags: 
+	-flag_name		"Description (default: default_value)"
+``` 
+And program execution will be terminated with UNIX status code `0`.
 
 ### File provider
 Doesn't require any specific tags. JSON and YAML formats of files are supported.
