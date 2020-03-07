@@ -70,7 +70,7 @@ If none of providers found value - "zero" value of a field remains.
 You can define a custom provider which should satisfy next interface:
 ```go
 type Provider interface {
-	Provide(field reflect.StructField, v reflect.Value) bool
+	Provide(field reflect.StructField, v reflect.Value, pathToField ...string) bool
 }
 ```
 
