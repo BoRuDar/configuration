@@ -2,6 +2,8 @@ package configuration
 
 import (
 	"flag"
+	"fmt"
+	"os"
 	"reflect"
 	"strings"
 )
@@ -14,13 +16,17 @@ func NewFlagProvider(ptrToCfg interface{}) flagProvider {
 		flags:       map[string]*flagData{},
 	}
 	fp.initFlagProvider(ptrToCfg)
+
+	showHelp := flag.Bool("help", false, "")
 	flag.Parse()
+	fp.help(*showHelp)
+
 	return fp
 }
 
 type flagProvider struct {
 	flagsValues map[string]func() *string
-	flags       map[string]*flagData // todo: add flag help?
+	flags       map[string]*flagData
 }
 
 type flagData struct {
@@ -123,4 +129,30 @@ func getFlagData(field reflect.StructField) *flagData {
 		failf(msg, key)
 		return nil
 	}
+}
+
+func (fd flagData) String() string {
+	usageStr := fmt.Sprintf("sets struct field [%s]", fd.key)
+	if len(fd.usage) > 0 {
+		usageStr = fmt.Sprintf("%s", fd.usage)
+	}
+
+	defaultVal := ""
+	if len(fd.defaultVal) > 0 {
+		defaultVal = fmt.Sprintf(" (default: %s)", fd.defaultVal)
+	}
+
+	return fmt.Sprintf("\t-%s\t\t\"%s%s\"", fd.key, usageStr, defaultVal)
+}
+
+func (fp flagProvider) help(enabled bool) {
+	if !enabled {
+		return
+	}
+
+	fmt.Println("Flags: ")
+	for _, f := range fp.flags {
+		fmt.Println(f)
+	}
+	os.Exit(0)
 }
