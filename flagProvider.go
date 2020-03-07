@@ -69,9 +69,7 @@ func (fp flagProvider) setFlagCallbacks(field reflect.StructField) {
 	}
 
 	if _, ok := fp.flagsValues[fd.key]; ok {
-		msg := "flagProvider: flag for the key [%s] is already set"
-		logf(msg, fd.key)
-		failf(msg, fd.key)
+		logf("flagProvider: flag for the key [%s] is already set", fd.key)
 		return
 	}
 	fp.flags[fd.key] = fd
@@ -130,9 +128,7 @@ func getFlagData(field reflect.StructField) *flagData {
 			key: strings.TrimSpace(flagInfo[0]),
 		}
 	default:
-		msg := "flagProvider: wrong flag definition [%s]"
-		logf(msg, key)
-		failf(msg, key)
+		logf("flagProvider: wrong flag definition [%s]", key)
 		return nil
 	}
 }
