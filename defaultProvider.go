@@ -4,6 +4,7 @@ import (
 	"reflect"
 )
 
+// NewDefaultProvider creates new provider which sets values from `default` tag
 func NewDefaultProvider() defaultProvider {
 	return defaultProvider{}
 }

@@ -11,6 +11,7 @@ import (
 	"strings"
 )
 
+// NewFileProvider creates new provider which read values from files (json, yaml)
 func NewFileProvider(fileName string) (fp fileProvider) {
 	file, err := os.Open(fileName)
 	if err != nil {

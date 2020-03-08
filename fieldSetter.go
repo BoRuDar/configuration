@@ -8,6 +8,7 @@ import (
 
 const sliceSeparator = ";"
 
+// SetField sets field with `valStr` value (converts to the proper type beforehand)
 func SetField(field reflect.StructField, v reflect.Value, valStr string) {
 	if v.Kind() == reflect.Ptr {
 		setPtrValue(field.Type.Elem(), v, valStr)

@@ -5,8 +5,9 @@ import (
 	"reflect"
 )
 
+// New creates a new instance of the configurator
 func New(
-	cfgPtr interface{},
+	cfgPtr interface{}, // must be a pointer to a struct
 	providers []Provider,
 	loggingEnabled bool,
 	failIfCannotSet bool,
@@ -33,6 +34,8 @@ type configurator struct {
 	providers []Provider
 }
 
+// InitValues sets values into struct field using given set of providers
+// respecting their order: first defined -> first executed
 func (c configurator) InitValues() {
 	c.fillUp(c.config)
 }

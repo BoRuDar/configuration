@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// NewEnvProvider creates provider which sets values from ENV variables (gets variable name from `env` tag)
 func NewEnvProvider() envProvider {
 	return envProvider{}
 }
