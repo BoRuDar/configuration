@@ -102,11 +102,11 @@ Looks for `flag` tag and tries to set value from the command line flag `-name`
 ```go
     struct {
         // ...
-        Name     string `json:"name"  flag:"name"`
+        Name     string `json:"name"  flag:"name|default_value|Description"`
         // ...
     }
 ```
-Name inside tag `flag:"<name>"` must be unique for each field.
+Name inside tag `flag:"<name>"` must be unique for each field. `default_value` and `description` sections are optional and can be omitted.
 `NewFlagProvider(&cfg)` expects a pointer to the same object for initialization.
 
 *Note*: if program is executed with `-help` or `-h` flag you will see all available flags with description:
