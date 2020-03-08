@@ -1,3 +1,4 @@
+// Package configuration provides ability to initialize your custom configuration struct from: flags, environment variables, `default` tag, files (json, yaml)
 package configuration
 
 import (
