@@ -66,26 +66,6 @@ func TestSetValue_Bool(t *testing.T) {
 	}
 }
 
-func TestSetValue_Invalid(t *testing.T) {
-	var testInvalidVal chan struct{}
-	fieldType := reflect.TypeOf(&testInvalidVal).Elem()
-	fieldVal := reflect.ValueOf(&testInvalidVal).Elem()
-	testValue := "...invalid value{}"
-	expectedPanicStr := `unsupported type: chan`
-
-	defer func() {
-		recoveredPanic := recover()
-		if recoveredPanic == nil {
-			t.Fatalf("panic is expected")
-		}
-		if recoveredPanic != expectedPanicStr {
-			t.Fatalf("expected panic msg [%s] \nbut got [%s]", expectedPanicStr, recoveredPanic)
-		}
-	}()
-
-	setValue(fieldType, fieldVal, testValue)
-}
-
 func TestSetPtrValue_Ints(t *testing.T) {
 	testValue := "42"
 
@@ -256,26 +236,6 @@ func TestSetPtrValue_Bool(t *testing.T) {
 	if fieldVal.Elem().Bool() != true {
 		t.Fatalf("\nexpected result: [%s] \nbut got: [%v]", testValue, testBool)
 	}
-}
-
-func TestSetPtrValue_Invalid(t *testing.T) {
-	var testInvalidVal chan struct{}
-	fieldType := reflect.TypeOf(&testInvalidVal).Elem()
-	fieldVal := reflect.ValueOf(&testInvalidVal).Elem()
-	testValue := "...invalid value{}"
-	expectedPanicStr := `unsupported type: chan`
-
-	defer func() {
-		recoveredPanic := recover()
-		if recoveredPanic == nil {
-			t.Fatalf("panic is expected")
-		}
-		if recoveredPanic != expectedPanicStr {
-			t.Fatalf("expected panic msg [%s] \nbut got [%s]", expectedPanicStr, recoveredPanic)
-		}
-	}()
-
-	setPtrValue(fieldType, fieldVal, testValue)
 }
 
 func TestSetValue_StringSlice(t *testing.T) {
