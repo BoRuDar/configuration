@@ -1,3 +1,4 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/borudar/configuration)](https://goreportcard.com/report/github.com/borudar/configuration)
 [![codecov](https://codecov.io/gh/BoRuDar/configuration/branch/master/graph/badge.svg)](https://codecov.io/gh/BoRuDar/configuration)
 
 # Configuration
@@ -70,7 +71,7 @@ If none of providers found value - "zero" value of a field remains.
 You can define a custom provider which should satisfy next interface:
 ```go
 type Provider interface {
-	Provide(field reflect.StructField, v reflect.Value) bool
+	Provide(field reflect.StructField, v reflect.Value, pathToField ...string) bool
 }
 ```
 
@@ -102,11 +103,11 @@ Looks for `flag` tag and tries to set value from the command line flag `-name`
 ```go
     struct {
         // ...
-        Name     string `json:"name"  flag:"name"`
+        Name     string `json:"name"  flag:"name|default_value|Description"`
         // ...
     }
 ```
-Name inside tag `flag:"<name>"` must be unique for each field.
+Name inside tag `flag:"<name>"` must be unique for each field. `default_value` and `description` sections are optional and can be omitted.
 `NewFlagProvider(&cfg)` expects a pointer to the same object for initialization.
 
 *Note*: if program is executed with `-help` or `-h` flag you will see all available flags with description:
