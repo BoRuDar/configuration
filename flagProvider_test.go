@@ -28,44 +28,6 @@ func TestFlagProvider(t *testing.T) {
 	assert.Equal(t, testValue, testObj.Name)
 }
 
-func TestFlagData_String(t *testing.T) {
-	tests := map[string]struct {
-		flag     *flagData
-		expected string
-	}{
-		"3 fields": {
-			flag: &flagData{
-				key:        "key",
-				defaultVal: "defVal",
-				usage:      "usage",
-			},
-			expected: `	-key		"usage (default: defVal)"`,
-		},
-		"2 fields": {
-			flag: &flagData{
-				key:        "key",
-				defaultVal: "defVal",
-			},
-			expected: `	-key		"sets struct field [key] (default: defVal)"`,
-		},
-		"1 fields": {
-			flag: &flagData{
-				key: "key",
-			},
-			expected: `	-key		"sets struct field [key]"`,
-		},
-	}
-
-	for name, test := range tests {
-		test := test
-		t.Run(name, func(t *testing.T) {
-			gotStr := test.flag.String()
-
-			assert.Equal(t, test.expected, gotStr)
-		})
-	}
-}
-
 func TestGetFlagData(t *testing.T) {
 	tests := map[string]struct {
 		input    interface{}
