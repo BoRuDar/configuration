@@ -2,13 +2,9 @@ package configuration
 
 import (
 	"flag"
-	"fmt"
-	"os"
 	"reflect"
 	"strings"
 )
-
-var showHelpFlag *bool
 
 const flagSeparator = "|"
 
@@ -19,14 +15,7 @@ func NewFlagProvider(ptrToCfg interface{}) flagProvider {
 	}
 	fp.initFlagProvider(ptrToCfg)
 
-	if showHelpFlag == nil {
-		// this overhead is because of strange bug/feature of flag package which breaks tests when
-		// flag.Bool("help", false, "") is called twice in different tests
-		showHelpFlag = flag.Bool("help", false, "")
-	}
 	flag.Parse()
-
-	help(*showHelpFlag, fp.flags)
 	return fp
 }
 
@@ -131,30 +120,4 @@ func getFlagData(field reflect.StructField) *flagData {
 		logf("flagProvider: wrong flag definition [%s]", key)
 		return nil
 	}
-}
-
-func (fd flagData) String() string {
-	usageStr := fmt.Sprintf("sets struct field [%s]", fd.key)
-	if len(fd.usage) > 0 {
-		usageStr = fmt.Sprintf("%s", fd.usage)
-	}
-
-	defaultVal := ""
-	if len(fd.defaultVal) > 0 {
-		defaultVal = fmt.Sprintf(" (default: %s)", fd.defaultVal)
-	}
-
-	return fmt.Sprintf("\t-%s\t\t\"%s%s\"", fd.key, usageStr, defaultVal)
-}
-
-func help(enabled bool, flags map[string]*flagData) {
-	if !enabled {
-		return
-	}
-
-	fmt.Println("Flags: ")
-	for _, f := range flags {
-		fmt.Println(f)
-	}
-	os.Exit(0)
 }

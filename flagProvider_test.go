@@ -26,7 +26,6 @@ func TestFlagProvider(t *testing.T) {
 	}
 
 	assert.Equal(t, testValue, testObj.Name)
-	assert.NotNil(t, showHelpFlag)
 }
 
 func TestFlagData_String(t *testing.T) {
