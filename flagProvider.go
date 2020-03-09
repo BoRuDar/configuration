@@ -39,7 +39,8 @@ func (fp flagProvider) initFlagProvider(i interface{}) {
 		t = t.Elem()
 		v = v.Elem()
 	default:
-		panic("not a pointer to a struct")
+		failf("not a pointer to a struct")
+		return
 	}
 
 	for i := 0; i < t.NumField(); i++ {

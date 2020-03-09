@@ -115,7 +115,7 @@ Name inside tag `flag:"<name>"` must be unique for each field. `default_value` a
 Flags: 
 	-flag_name		"Description (default: default_value)"
 ``` 
-And program execution will be terminated with UNIX status code `0`.
+And program execution will be terminated.
 
 ### File provider
 Doesn't require any specific tags. JSON and YAML formats of files are supported.
