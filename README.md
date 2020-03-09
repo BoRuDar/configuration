@@ -1,5 +1,6 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/borudar/configuration)](https://goreportcard.com/report/github.com/borudar/configuration)
 [![codecov](https://codecov.io/gh/BoRuDar/configuration/branch/master/graph/badge.svg)](https://codecov.io/gh/BoRuDar/configuration)
+![Go](https://github.com/BoRuDar/configuration/workflows/Go/badge.svg)
 
 # Configuration
 is a library for injecting values recursively into structs - a convinient way of setting up a configuration object.
