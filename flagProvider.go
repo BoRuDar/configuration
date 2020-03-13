@@ -8,6 +8,7 @@ import (
 
 const flagSeparator = "|"
 
+// NewFlagProvider creates a new provider to fetch data from flags like: --flag_name some_value
 func NewFlagProvider(ptrToCfg interface{}) flagProvider {
 	fp := flagProvider{
 		flagsValues: map[string]func() *string{},
