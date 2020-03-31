@@ -2,7 +2,7 @@
 [![codecov](https://codecov.io/gh/BoRuDar/configuration/branch/master/graph/badge.svg)](https://codecov.io/gh/BoRuDar/configuration)
 ![Go](https://github.com/BoRuDar/configuration/workflows/Go/badge.svg)
 [![GoDoc](https://godoc.org/github.com/BoRuDar/configuration?status.png)](https://godoc.org/github.com/BoRuDar/configuration)
-
+[![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go) 
 
 # Configuration
 is a library for injecting values recursively into structs - a convinient way of setting up a configuration object.
