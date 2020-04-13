@@ -3,6 +3,7 @@ package configuration
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -31,8 +32,9 @@ func TestConfigurator(t *testing.T) {
 		BoolPtr  *bool  `json:"bool_ptr"      default:"false"`
 
 		ObjPtr *struct {
-			F32    float32 `json:"f32"            default:"32"`
-			StrPtr *string `json:"str_ptr"        default:"str_ptr_test"`
+			F32       float32       `json:"f32"            default:"32"`
+			StrPtr    *string       `json:"str_ptr"        default:"str_ptr_test"`
+			HundredMS time.Duration `json:"hundred_ms"     default:"100ms"`
 		}
 
 		Obj struct {
@@ -70,6 +72,7 @@ func TestConfigurator(t *testing.T) {
 	assert.Equal(t, int(42), cfg.Obj.NameYML)
 	assert.Equal(t, []string{"one", "two"}, cfg.Obj.StrSlice)
 	assert.Equal(t, []int64{3, 4}, cfg.Obj.IntSlice)
+	assert.Equal(t, time.Millisecond*100, cfg.ObjPtr.HundredMS)
 }
 
 func TestConfigurator_Errors(t *testing.T) {
