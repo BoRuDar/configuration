@@ -21,6 +21,7 @@ Supported types:
 - `*uint`, `*uint8`, `*uint16`, `*uint32`, `*uint64`
 - `float32`, `float64` + slices of these types
 - `*float32`, `*float64`
+- `time.Duration` from strings like `12ms`, `2s` etc.
 - embedded structs and pointers to structs
 
 # Quick start
@@ -36,9 +37,10 @@ Supported types:
             One string  `json:"one"            default:"defaultValForOne"`
             Two float32 `json:"two"            default:"33"`
         }
-        StrPtr  *string `json:"str_ptr"         default:"str_ptr_test"`
-        IntPtr  *int    `json:"int_ptr"         default:"123"`
-        BoolPtr *bool   `json:"bool_ptr"        default:"true"`
+        HundredMS  time.Duration `json:"hundred_ms"      default:"100ms"`
+        StrPtr     *string       `json:"str_ptr"         default:"str_ptr_test"`
+        IntPtr     *int          `json:"int_ptr"         default:"123"`
+        BoolPtr    *bool         `json:"bool_ptr"        default:"true"`
     }{}
     
     

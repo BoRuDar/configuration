@@ -2,9 +2,12 @@ package configuration
 
 import (
 	"encoding/json"
-	"gopkg.in/yaml.v2"
 	"reflect"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v2"
 )
 
 type testStruct struct {
@@ -12,6 +15,7 @@ type testStruct struct {
 	Inside struct {
 		Beta int
 	}
+	Timeout time.Duration
 }
 
 func TestFileProvider_yml(t *testing.T) {
@@ -22,21 +26,46 @@ func TestFileProvider_yml(t *testing.T) {
 		}{
 			Beta: 42,
 		},
+		Timeout: time.Millisecond * 100,
 	}
 
 	provider := NewFileProvider("./testdata/input.yml")
 
-	fieldType := reflect.TypeOf(&testObj).Elem().Field(1).Type.Field(0)
-	fieldVal := reflect.ValueOf(&testObj).Elem().Field(1).Field(0)
-	fieldPath := []string{"Inside", "Beta"}
+	var ( // field: Inside.Beta
+		fieldType = reflect.TypeOf(&testObj).Elem().Field(1).Type.Field(0)
+		fieldVal  = reflect.ValueOf(&testObj).Elem().Field(1).Field(0)
+		fieldPath = []string{"Inside", "Beta"}
+	)
+	var ( // field: Timeout
+		fieldType2 = reflect.TypeOf(&testObj).Elem().Field(2)
+		fieldVal2  = reflect.ValueOf(&testObj).Elem().Field(2)
+		fieldPath2 = []string{"Timeout"}
+	)
 
-	if !provider.Provide(fieldType, fieldVal, fieldPath...) {
-		t.Fatal("cannot set value")
+	ok1 := provider.Provide(fieldType, fieldVal, fieldPath...)
+	ok2 := provider.Provide(fieldType2, fieldVal2, fieldPath2...)
+
+	assert.True(t, ok1, "cannot set value for Inside.Beta")
+	assert.True(t, ok2, "cannot set value for Timeout")
+	assert.Equal(t, expected, testObj)
+}
+
+func TestFileProvider_json(t *testing.T) {
+	testObj := testStruct{}
+	expected := testStruct{
+		Timeout: time.Millisecond * 101,
 	}
 
-	if !reflect.DeepEqual(expected, testObj) {
-		t.Fatalf("\nexpected result: [%+v] \nbut got: [%+v]", expected, testObj)
-	}
+	provider := NewFileProvider("./testdata/input.json")
+
+	fieldType := reflect.TypeOf(&testObj).Elem().Field(2)
+	fieldVal := reflect.ValueOf(&testObj).Elem().Field(2)
+	fieldPath := []string{"Timeout"}
+
+	ok := provider.Provide(fieldType, fieldVal, fieldPath...)
+
+	assert.True(t, ok, "cannot set value")
+	assert.Equal(t, expected, testObj)
 }
 
 func TestFindValStrByPath(t *testing.T) {

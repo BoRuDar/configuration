@@ -3,3 +3,4 @@ inside:
   beta: 42
 obj:
   nameYML: 42
+timeout: "100ms"

@@ -4,6 +4,9 @@ import (
 	"reflect"
 	"strconv"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSetValue_String(t *testing.T) {
@@ -40,6 +43,31 @@ func TestSetValue_Uint16(t *testing.T) {
 	if fieldVal.Uint() != uint64(testUint16) {
 		t.Fatalf("\nexpected result: [%s] \nbut got: [%d]", testValue, testUint16)
 	}
+}
+
+func TestSetValue_Int64(t *testing.T) {
+	var (
+		testInt64 int64
+		fieldVal  = reflect.ValueOf(&testInt64).Elem()
+		testValue = "42"
+	)
+
+	setInt64(fieldVal, testValue)
+
+	assert.Equal(t, testInt64, fieldVal.Int())
+}
+
+func TestSetValue_Duration(t *testing.T) {
+	var (
+		testDuration   time.Duration
+		fieldVal       = reflect.ValueOf(&testDuration).Elem()
+		testValue      = "42ms"
+		expectedVal, _ = time.ParseDuration(testValue)
+	)
+
+	setInt64(fieldVal, testValue)
+
+	assert.Equal(t, expectedVal, time.Duration(fieldVal.Int()))
 }
 
 func TestSetValue_Float32(t *testing.T) {
@@ -270,6 +298,21 @@ func TestSetValue_IntSlice(t *testing.T) {
 	fieldVal := reflect.ValueOf(&testStr).Elem()
 	testValue := "1    ; 2 "
 	expected := []int{1, 2}
+
+	setValue(fieldType, fieldVal, testValue)
+	if !reflect.DeepEqual(expected, fieldVal.Interface()) {
+		t.Fatalf("\nexpected result: %+v \nbut got: %+v", expected, fieldVal.Interface())
+	}
+}
+
+func TestSetValue_UintSlice(t *testing.T) {
+	var (
+		testStr   []uint
+		fieldType = reflect.TypeOf(&testStr).Elem()
+		fieldVal  = reflect.ValueOf(&testStr).Elem()
+		testValue = "1  ; 2 "
+		expected  = []uint{1, 2}
+	)
 
 	setValue(fieldType, fieldVal, testValue)
 	if !reflect.DeepEqual(expected, fieldVal.Interface()) {

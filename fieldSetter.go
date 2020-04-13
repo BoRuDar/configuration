@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const sliceSeparator = ";"
@@ -22,9 +23,12 @@ func setValue(t reflect.Type, v reflect.Value, val string) {
 	case reflect.String:
 		v.SetString(val)
 
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:
 		i, _ := strconv.ParseInt(val, 10, 64)
 		v.SetInt(i)
+
+	case reflect.Int64:
+		setInt64(v, val)
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		i, _ := strconv.ParseUint(val, 10, 64)
@@ -44,6 +48,19 @@ func setValue(t reflect.Type, v reflect.Value, val string) {
 	default:
 		failf("unsupported type: %v", v.Kind().String())
 	}
+}
+
+func setInt64(v reflect.Value, val string) {
+	// special case for parsing human readable input for time.Duration
+	if _, ok := v.Interface().(time.Duration); ok {
+		d, _ := time.ParseDuration(val)
+		v.SetInt(int64(d))
+		return
+	}
+
+	// regular int64 case
+	i, _ := strconv.ParseInt(val, 10, 64)
+	v.SetInt(i)
 }
 
 func setSlice(t reflect.Type, v reflect.Value, val string) {

@@ -3,12 +3,13 @@ package configuration
 import (
 	"encoding/json"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"os"
 	"reflect"
 	"strings"
+
+	"gopkg.in/yaml.v2"
 )
 
 // NewFileProvider creates new provider which read values from files (json, yaml)
