@@ -56,7 +56,7 @@ func setSlice(t reflect.Type, v reflect.Value, val string) {
 	}
 
 	size := len(items)
-	if size < 2 {
+	if size < 1 {
 		return
 	}
 	slice := reflect.MakeSlice(t, size, size)

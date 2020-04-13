@@ -251,6 +251,19 @@ func TestSetValue_StringSlice(t *testing.T) {
 	}
 }
 
+func TestSetValue_StringSliceSingleElement(t *testing.T) {
+	var testStr []string
+	fieldType := reflect.TypeOf(&testStr).Elem()
+	fieldVal := reflect.ValueOf(&testStr).Elem()
+	testValue := "test_val1"
+	expected := []string{"test_val1"}
+
+	setValue(fieldType, fieldVal, testValue)
+	if !reflect.DeepEqual(expected, fieldVal.Interface()) {
+		t.Fatalf("\nexpected result: %+v \nbut got: %+v", expected, fieldVal.Interface())
+	}
+}
+
 func TestSetValue_IntSlice(t *testing.T) {
 	var testStr []int
 	fieldType := reflect.TypeOf(&testStr).Elem()
