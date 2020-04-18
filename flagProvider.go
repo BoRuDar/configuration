@@ -45,11 +45,19 @@ func (fp flagProvider) initFlagProvider(i interface{}) {
 	}
 
 	for i := 0; i < t.NumField(); i++ {
-		if t.Field(i).Type.Kind() == reflect.Struct {
+		tField := t.Field(i)
+		if tField.Type.Kind() == reflect.Struct {
 			fp.initFlagProvider(v.Field(i).Addr().Interface())
 			continue
 		}
-		fp.setFlagCallbacks(t.Field(i))
+
+		if tField.Type.Kind() == reflect.Ptr && tField.Type.Elem().Kind() == reflect.Struct {
+			v.Field(i).Set(reflect.New(tField.Type.Elem()))
+			fp.initFlagProvider(v.Field(i).Interface())
+			continue
+		}
+
+		fp.setFlagCallbacks(tField)
 	}
 }
 
