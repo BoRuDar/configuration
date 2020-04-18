@@ -102,3 +102,31 @@ func TestConfigurator_Errors(t *testing.T) {
 		})
 	}
 }
+
+func TestEmbeddedFlags(t *testing.T) {
+	type (
+		Client struct {
+			ServerAddress string `flag:"addr|127.0.0.1:443|server address"`
+		}
+		Config struct {
+			Client *Client
+		}
+	)
+	os.Args = []string{"smth", "-addr=addr_value"}
+
+	var cfg Config
+	c, err := New(
+		&cfg,
+		[]Provider{
+			NewFlagProvider(&cfg),
+		},
+		true, true,
+	)
+	if err != nil {
+		t.Fatal("unexpected err: ", err)
+	}
+	c.InitValues()
+
+	assert.NotNil(t, cfg.Client)
+	assert.Equal(t, cfg.Client.ServerAddress, "addr_value")
+}
