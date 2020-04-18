@@ -5,8 +5,8 @@
 [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go) 
 
 # Configuration
-is a library for injecting values recursively into structs - a convinient way of setting up a configuration object.
-Available features :
+is a library for injecting values recursively into structs - a convenient way of setting up a configuration object.
+Available features:
 - setting *default* values for struct fields - `NewDefaultProvider()`
 - setting values from *environment* variables - `NewEnvProvider()`
 - setting values from command line *flags* - `NewFlagProvider(&cfg)`
@@ -25,39 +25,42 @@ Supported types:
 - embedded structs and pointers to structs
 
 # Quick start
-
+Import path `github.com/BoRuDar/configuration/v2`
 ```go
 // define a configuration object
-    cfg := struct {
-        Name     string `json:"name"          default:"defaultName"         flag:"name"`
-        LastName string `json:"last_name"     default:"defaultLastName"`
-        Age      byte   `json:"age"           env:"AGE_ENV"`
-        IsDebug  bool   `json:"is_debug"      default:"false"`
-        Object   struct {
-            One string  `json:"one"            default:"defaultValForOne"`
-            Two float32 `json:"two"            default:"33"`
-        }
-        HundredMS  time.Duration `json:"hundred_ms"      default:"100ms"`
-        StrPtr     *string       `json:"str_ptr"         default:"str_ptr_test"`
-        IntPtr     *int          `json:"int_ptr"         default:"123"`
-        BoolPtr    *bool         `json:"bool_ptr"        default:"true"`
-    }{}
-    
-    
-    configurator, err := New(
-        &cfg, // pointer to the object
-        []Provider{ // list of providers
-            NewFlagProvider(&cfg), // flag provider expects pointer to the object to initialize flags
-            NewEnvProvider(),
-            NewDefaultProvider(),
-        },
-        false, // logging if true
-        false, // fail fast if cannot set any field in the given object
-    )
-    if err != nil {
-        panic(err)
+cfg := struct {
+    Name     string `json:"name"          default:"defaultName"         flag:"name"`
+    LastName string `json:"last_name"     default:"defaultLastName"`
+    Age      byte   `json:"age"           env:"AGE_ENV"`
+    BoolPtr  *bool  `json:"bool_ptr"      default:"false"`
+
+    ObjPtr *struct {
+        F32       float32       `json:"f32"            default:"32"`
+        StrPtr    *string       `json:"str_ptr"        default:"str_ptr_test"`
+        HundredMS time.Duration `json:"hundred_ms"     default:"100ms"`
     }
-    configurator.InitValues()
+
+    Obj struct {
+        IntPtr   *int16   `json:"int_ptr"         default:"123"`
+        NameYML  int      `default:"24"`
+        StrSlice []string `default:"one;two"`
+        IntSlice []int64  `default:"3; 4"`
+    }
+}{}
+
+configurator, err := New(
+    &cfg, // pointer to the object for configuration 
+    NewFlagProvider(&cfg),  // 1. flag provider expects pointer to the object to initialize flags
+    NewEnvProvider(),       // 2.
+    NewFileProvider("./testdata/input.yml"), // 3.
+    NewDefaultProvider(),   // 4.
+    // providers are executed in order of the declaration from 1 to 4 
+)
+if err != nil {
+    t.Fatalf("unexpected error: %v", err)
+}
+
+configurator.InitValues()
 ```
 
 

@@ -46,15 +46,16 @@ func TestConfigurator(t *testing.T) {
 		}
 	}{}
 
-	configurator, err := New(&cfg, []Provider{
+	configurator, err := New(&cfg,
 		NewFlagProvider(&cfg),
 		NewEnvProvider(),
 		NewFileProvider("./testdata/input.yml"),
 		NewDefaultProvider(),
-	}, true, true)
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	configurator.InitValues()
 
 	assert.Equal(t, "flag_value", cfg.Name)
@@ -96,7 +97,7 @@ func TestConfigurator_Errors(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			_, err := New(test.input, test.providers, false, false)
+			_, err := New(test.input, test.providers...)
 			if err == nil {
 				t.Fatal("expected error but got nil")
 			}
@@ -116,16 +117,11 @@ func TestEmbeddedFlags(t *testing.T) {
 	os.Args = []string{"smth", "-addr=addr_value"}
 
 	var cfg Config
-	c, err := New(
-		&cfg,
-		[]Provider{
-			NewFlagProvider(&cfg),
-		},
-		true, true,
-	)
+	c, err := New(&cfg, NewFlagProvider(&cfg))
 	if err != nil {
 		t.Fatal("unexpected err: ", err)
 	}
+
 	c.InitValues()
 
 	assert.NotNil(t, cfg.Client)
@@ -147,7 +143,7 @@ func TestSetLogger(t *testing.T) {
 		}
 	)
 
-	c, err := New(&cfg, []Provider{NewDefaultProvider()}, true, true)
+	c, err := New(&cfg, NewDefaultProvider())
 	if err != nil {
 		t.Fatal("unexpected err: ", err)
 	}
