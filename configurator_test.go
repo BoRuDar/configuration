@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -129,4 +130,31 @@ func TestEmbeddedFlags(t *testing.T) {
 
 	assert.NotNil(t, cfg.Client)
 	assert.Equal(t, cfg.Client.ServerAddress, "addr_value")
+}
+
+func TestSetLogger(t *testing.T) {
+	var (
+		cfg = struct {
+			Name string `default:"test_name"`
+		}{}
+		logs  []string // collects log output into slice
+		logFn = func(format string, v ...interface{}) {
+			logs = append(logs, fmt.Sprintf(format, v...))
+		}
+		expectedLogs = []string{
+			"configurator: current path: [Name]", "defaultProvider: set [test_name] to field [Name] with tags [default:\"test_name\"]",
+			"\n",
+		}
+	)
+
+	c, err := New(&cfg, []Provider{NewDefaultProvider()}, true, true)
+	if err != nil {
+		t.Fatal("unexpected err: ", err)
+	}
+
+	c.SetLogger(logFn)
+	c.InitValues()
+
+	assert.Equal(t, cfg.Name, "test_name")
+	assert.Equal(t, expectedLogs, logs)
 }
