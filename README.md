@@ -24,6 +24,15 @@ Supported types:
 - `time.Duration` from strings like `12ms`, `2s` etc.
 - embedded structs and pointers to structs
 
+# Why?
+- your entire configuration can be defined in one model
+- all metadata is in your model (defined with `tags`)
+- easy to set/change a source of data for your configuration
+- easy to set a priority of sources to fetch data from (e.g., 1.`flags`, 2.`env`, 3.`default` or another order)
+- you can implement your custom provider
+- only `2` external dependencies
+- complies with `12-factor app`
+
 # Quick start
 Import path `github.com/BoRuDar/configuration/v2`
 ```go
