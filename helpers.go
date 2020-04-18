@@ -1,22 +1,25 @@
 package configuration
 
-import (
-	"log"
-)
+import "os"
+
+type Logger func(format string, v ...interface{})
 
 var (
 	gLoggingEnabled  bool
 	gFailIfCannotSet bool
+
+	logger Logger
 )
 
 func logf(format string, args ...interface{}) {
 	if gLoggingEnabled {
-		log.Printf(format, args...)
+		logger(format, args...)
 	}
 }
 
-func failf(format string, args ...interface{}) {
+func fatalf(format string, args ...interface{}) {
 	if gFailIfCannotSet {
-		log.Fatalf(format, args...)
+		logger(format, args...)
+		os.Exit(1)
 	}
 }

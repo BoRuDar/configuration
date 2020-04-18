@@ -46,7 +46,7 @@ func setValue(t reflect.Type, v reflect.Value, val string) {
 		setSlice(t, v, val)
 
 	default:
-		failf("unsupported type: %v", v.Kind().String())
+		fatalf("unsupported type: %v", v.Kind().String())
 	}
 }
 
@@ -104,7 +104,7 @@ func setSlice(t reflect.Type, v reflect.Value, val string) {
 			slice.Index(i).SetBool(val)
 		}
 	default:
-		failf("unsupported type of slice item: %v", t.Elem().Kind().String())
+		fatalf("unsupported type of slice item: %v", t.Elem().Kind().String())
 	}
 
 	v.Set(slice)
@@ -182,6 +182,6 @@ func setPtrValue(t reflect.Type, v reflect.Value, val string) {
 			v.Set(reflect.ValueOf(&b))
 		}
 	default:
-		failf("unsupported type: %v", t.Kind().String())
+		fatalf("unsupported type: %v", t.Kind().String())
 	}
 }

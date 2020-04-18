@@ -3,6 +3,7 @@ package configuration
 
 import (
 	"errors"
+	"log"
 	"reflect"
 )
 
@@ -23,6 +24,7 @@ func New(
 
 	gLoggingEnabled = loggingEnabled
 	gFailIfCannotSet = failIfCannotSet
+	logger = log.Printf
 
 	return configurator{
 		config:    cfgPtr,
@@ -39,6 +41,11 @@ type configurator struct {
 // respecting their order: first defined -> first executed
 func (c configurator) InitValues() {
 	c.fillUp(c.config)
+}
+
+// SetLogger changes logger
+func (configurator) SetLogger(l Logger) {
+	logger = l
 }
 
 func (c configurator) fillUp(i interface{}, parentPath ...string) {
@@ -84,5 +91,5 @@ func (c configurator) applyProviders(field reflect.StructField, v reflect.Value,
 		}
 	}
 	logf("configurator: field [%s] with tags [%v] cannot be set!", field.Name, field.Tag)
-	failf("configurator: field [%s] with tags [%v] cannot be set!", field.Name, field.Tag)
+	fatalf("configurator: field [%s] with tags [%v] cannot be set!", field.Name, field.Tag)
 }

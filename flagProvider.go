@@ -40,7 +40,7 @@ func (fp flagProvider) initFlagProvider(i interface{}) {
 		t = t.Elem()
 		v = v.Elem()
 	default:
-		failf("not a pointer to a struct")
+		fatalf("not a pointer to a struct")
 		return
 	}
 
