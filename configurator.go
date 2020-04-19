@@ -7,12 +7,12 @@ import (
 	"reflect"
 )
 
-// New creates a new instance of the configurator
+// New creates a new instance of the configurator.
+// 'gLoggingEnabled' and 'gFailIfCannotSet' both are set to 'true' by default
+// default logger function is set to `log.Printf`
 func New(
 	cfgPtr interface{}, // must be a pointer to a struct
-	providers []Provider,
-	loggingEnabled bool,
-	failIfCannotSet bool,
+	providers ...Provider, // providers will be executed in order of their declaration
 ) (configurator, error) {
 	if len(providers) == 0 {
 		return configurator{}, errors.New("providers not found")
@@ -22,8 +22,8 @@ func New(
 		return configurator{}, errors.New("not a pointer to the struct")
 	}
 
-	gLoggingEnabled = loggingEnabled
-	gFailIfCannotSet = failIfCannotSet
+	gLoggingEnabled = true
+	gFailIfCannotSet = true
 	logger = log.Printf
 
 	return configurator{
@@ -44,8 +44,21 @@ func (c configurator) InitValues() {
 }
 
 // SetLogger changes logger
-func (configurator) SetLogger(l Logger) {
+func (c configurator) SetLogger(l Logger) configurator {
 	logger = l
+	return c
+}
+
+// DisableLogging turns off logging
+func (c configurator) DisableLogging() configurator {
+	gLoggingEnabled = false
+	return c
+}
+
+// IgnoreErrors prevents calling os.Exit(1) if the lib fails to init a field
+func (c configurator) IgnoreErrors() configurator {
+	gFailIfCannotSet = false
+	return c
 }
 
 func (c configurator) fillUp(i interface{}, parentPath ...string) {
