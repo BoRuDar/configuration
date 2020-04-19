@@ -3,6 +3,7 @@ package configuration
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"reflect"
 )
@@ -24,7 +25,7 @@ func New(
 
 	gLoggingEnabled = loggingEnabled
 	gFailIfCannotSet = failIfCannotSet
-	logger = log.Printf
+	gLogger = log.Printf
 
 	return configurator{
 		config:    cfgPtr,
@@ -39,16 +40,16 @@ type configurator struct {
 
 // InitValues sets values into struct field using given set of providers
 // respecting their order: first defined -> first executed
-func (c configurator) InitValues() {
-	c.fillUp(c.config)
+func (c configurator) InitValues() error {
+	return c.fillUp(c.config)
 }
 
-// SetLogger changes logger
+// SetLogger changes gLogger
 func (configurator) SetLogger(l Logger) {
-	logger = l
+	gLogger = l
 }
 
-func (c configurator) fillUp(i interface{}, parentPath ...string) {
+func (c configurator) fillUp(i interface{}, parentPath ...string) error {
 	var (
 		t = reflect.TypeOf(i)
 		v = reflect.ValueOf(i)
@@ -67,29 +68,40 @@ func (c configurator) fillUp(i interface{}, parentPath ...string) {
 		)
 
 		if tField.Type.Kind() == reflect.Struct {
-			c.fillUp(vField.Addr().Interface(), currentPath...)
+			if err :=c.fillUp(vField.Addr().Interface(), currentPath...); err!=nil {
+				return err
+			}
 			continue
 		}
 
 		if tField.Type.Kind() == reflect.Ptr && tField.Type.Elem().Kind() == reflect.Struct {
 			vField.Set(reflect.New(tField.Type.Elem()))
-			c.fillUp(vField.Interface(), currentPath...)
+			if err := c.fillUp(vField.Interface(), currentPath...); err != nil {
+				return err
+			}
 			continue
 		}
 
-		c.applyProviders(tField, vField, currentPath)
+		if err := c.applyProviders(tField, vField, currentPath); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func (c configurator) applyProviders(field reflect.StructField, v reflect.Value, currentPath []string) {
+func (c configurator) applyProviders(field reflect.StructField, v reflect.Value, currentPath []string) error {
 	logf("configurator: current path: %v", currentPath)
 
 	for _, provider := range c.providers {
 		if provider.Provide(field, v, currentPath...) {
 			logf("\n")
-			return
+			return nil
 		}
 	}
-	logf("configurator: field [%s] with tags [%v] cannot be set!", field.Name, field.Tag)
-	fatalf("configurator: field [%s] with tags [%v] cannot be set!", field.Name, field.Tag)
+	errMsg := fmt.Sprintf("configurator: field [%s] with tags [%v] cannot be set!", field.Name, field.Tag)
+	logf(errMsg)
+	if gFailIfCannotSet {
+		fatalf(errMsg)
+	}
+	return errors.New(errMsg)
 }

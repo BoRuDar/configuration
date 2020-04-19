@@ -8,18 +8,18 @@ var (
 	gLoggingEnabled  bool
 	gFailIfCannotSet bool
 
-	logger Logger
+	gLogger Logger
 )
 
 func logf(format string, args ...interface{}) {
 	if gLoggingEnabled {
-		logger(format, args...)
+		gLogger(format, args...)
 	}
 }
 
 func fatalf(format string, args ...interface{}) {
 	if gFailIfCannotSet {
-		logger(format, args...)
+		gLogger(format, args...)
 		os.Exit(1)
 	}
 }
