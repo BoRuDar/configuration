@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -10,15 +11,17 @@ import (
 const sliceSeparator = ";"
 
 // SetField sets field with `valStr` value (converts to the proper type beforehand)
-func SetField(field reflect.StructField, v reflect.Value, valStr string) {
+func SetField(field reflect.StructField, v reflect.Value, valStr string) error {
 	if v.Kind() == reflect.Ptr {
-		setPtrValue(field.Type.Elem(), v, valStr)
-		return
+		if err := setPtrValue(field.Type.Elem(), v, valStr); err != nil {
+			return err
+		}
+		return nil
 	}
-	setValue(field.Type, v, valStr)
+	return setValue(field.Type, v, valStr)
 }
 
-func setValue(t reflect.Type, v reflect.Value, val string) {
+func setValue(t reflect.Type, v reflect.Value, val string) error {
 	switch t.Kind() {
 	case reflect.String:
 		v.SetString(val)
@@ -43,11 +46,14 @@ func setValue(t reflect.Type, v reflect.Value, val string) {
 		v.SetBool(b)
 
 	case reflect.Slice:
-		setSlice(t, v, val)
+		if err := setSlice(t, v, val); err != nil {
+			return err
+		}
 
 	default:
-		fatalf("unsupported type: %v", v.Kind().String())
+		return fmt.Errorf("unsupported type: %v", v.Kind().String())
 	}
+	return nil
 }
 
 func setInt64(v reflect.Value, val string) {
@@ -63,7 +69,7 @@ func setInt64(v reflect.Value, val string) {
 	v.SetInt(i)
 }
 
-func setSlice(t reflect.Type, v reflect.Value, val string) {
+func setSlice(t reflect.Type, v reflect.Value, val string) error {
 	var items []string
 	for _, item := range strings.Split(val, sliceSeparator) {
 		item = strings.TrimSpace(item)
@@ -74,7 +80,7 @@ func setSlice(t reflect.Type, v reflect.Value, val string) {
 
 	size := len(items)
 	if size < 1 {
-		return
+		return nil
 	}
 	slice := reflect.MakeSlice(t, size, size)
 
@@ -104,13 +110,14 @@ func setSlice(t reflect.Type, v reflect.Value, val string) {
 			slice.Index(i).SetBool(val)
 		}
 	default:
-		fatalf("unsupported type of slice item: %v", t.Elem().Kind().String())
+		return fmt.Errorf("unsupported type of slice item: %v", t.Elem().Kind().String())
 	}
 
 	v.Set(slice)
+	return nil
 }
 
-func setPtrValue(t reflect.Type, v reflect.Value, val string) {
+func setPtrValue(t reflect.Type, v reflect.Value, val string) error {
 	switch t.Name() {
 	case reflect.Int.String(): // doesn't care about 32bit systems
 		if i64, err := strconv.ParseInt(val, 10, 64); err == nil {
@@ -182,6 +189,7 @@ func setPtrValue(t reflect.Type, v reflect.Value, val string) {
 			v.Set(reflect.ValueOf(&b))
 		}
 	default:
-		fatalf("unsupported type: %v", t.Kind().String())
+		return fmt.Errorf("unsupported type: %v", t.Kind().String())
 	}
+	return nil
 }

@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"flag"
+	"fmt"
 	"reflect"
 	"strings"
 )
@@ -14,7 +15,9 @@ func NewFlagProvider(ptrToCfg interface{}) flagProvider {
 		flagsValues: map[string]func() *string{},
 		flags:       map[string]*flagData{},
 	}
-	fp.initFlagProvider(ptrToCfg)
+	if err := fp.initFlagProvider(ptrToCfg); err != nil {
+		fatalf(err.Error())
+	}
 
 	flag.Parse()
 	return fp
@@ -29,7 +32,7 @@ type flagData struct {
 	key, defaultVal, usage string
 }
 
-func (fp flagProvider) initFlagProvider(i interface{}) {
+func (fp flagProvider) initFlagProvider(i interface{}) error {
 	var (
 		t = reflect.TypeOf(i)
 		v = reflect.ValueOf(i)
@@ -40,25 +43,29 @@ func (fp flagProvider) initFlagProvider(i interface{}) {
 		t = t.Elem()
 		v = v.Elem()
 	default:
-		fatalf("not a pointer to a struct")
-		return
+		return fmt.Errorf("not a pointer to a struct: %v", t)
 	}
 
 	for i := 0; i < t.NumField(); i++ {
 		tField := t.Field(i)
 		if tField.Type.Kind() == reflect.Struct {
-			fp.initFlagProvider(v.Field(i).Addr().Interface())
+			if err := fp.initFlagProvider(v.Field(i).Addr().Interface()); err != nil {
+				return err
+			}
 			continue
 		}
 
 		if tField.Type.Kind() == reflect.Ptr && tField.Type.Elem().Kind() == reflect.Struct {
 			v.Field(i).Set(reflect.New(tField.Type.Elem()))
-			fp.initFlagProvider(v.Field(i).Interface())
+			if err := fp.initFlagProvider(v.Field(i).Interface()); err != nil {
+				return err
+			}
 			continue
 		}
 
 		fp.setFlagCallbacks(tField)
 	}
+	return nil
 }
 
 func (fp flagProvider) setFlagCallbacks(field reflect.StructField) {
@@ -97,7 +104,10 @@ func (fp flagProvider) Provide(field reflect.StructField, v reflect.Value, _ ...
 	}
 
 	val := fn()
-	SetField(field, v, *val)
+	if err := SetField(field, v, *val); err != nil {
+		logf(err.Error())
+		return false
+	}
 	logf("flagProvider: set [%s] to field [%s] with tags [%v]", *val, field.Name, field.Tag)
 	return len(*val) > 0
 }

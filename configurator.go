@@ -68,7 +68,7 @@ func (c configurator) fillUp(i interface{}, parentPath ...string) error {
 		)
 
 		if tField.Type.Kind() == reflect.Struct {
-			if err :=c.fillUp(vField.Addr().Interface(), currentPath...); err!=nil {
+			if err := c.fillUp(vField.Addr().Interface(), currentPath...); err != nil {
 				return err
 			}
 			continue
