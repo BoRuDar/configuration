@@ -38,19 +38,19 @@ Import path `github.com/BoRuDar/configuration/v2`
 ```go
 // define a configuration object
 cfg := struct {
-    Name     string `json:"name"          default:"defaultName"         flag:"name"`
-    LastName string `json:"last_name"     default:"defaultLastName"`
-    Age      byte   `json:"age"           env:"AGE_ENV"`
-    BoolPtr  *bool  `json:"bool_ptr"      default:"false"`
+    Name     string `default:"defaultName"         flag:"name"`
+    LastName string `default:"defaultLastName"`
+    Age      byte   `env:"AGE_ENV"`
+    BoolPtr  *bool  `default:"false"`
 
     ObjPtr *struct {
-        F32       float32       `json:"f32"            default:"32"`
-        StrPtr    *string       `json:"str_ptr"        default:"str_ptr_test"`
-        HundredMS time.Duration `json:"hundred_ms"     default:"100ms"`
+        F32       float32       `default:"32"`
+        StrPtr    *string       `default:"str_ptr_test"`
+        HundredMS time.Duration `default:"100ms"`
     }
 
     Obj struct {
-        IntPtr   *int16   `json:"int_ptr"         default:"123"`
+        IntPtr   *int16   `default:"123"`
         NameYML  int      `default:"24"`
         StrSlice []string `default:"one;two"`
         IntSlice []int64  `default:"3; 4"`
@@ -97,18 +97,18 @@ Looks for `default` tag and set value from it:
 ```go
     struct {
         // ...
-        Name string `json:"name"          default:"defaultName"`
+        Name string `default:"defaultName"`
         // ...
     }
 ```
 
 
 ### Env provider
-Looks for `env` tag and tries to find an ENV variable with the name from the tag (`AGE_ENV` in this example):
+Looks for `env` tag and tries to find an ENV variable with the name from the tag (`AGE` in this example):
 ```go
     struct {
         // ...
-        Age      byte   `json:"age"           env:"AGE_ENV"`
+        Age      byte   `env:"AGE"`
         // ...
     }
 ```
@@ -116,21 +116,21 @@ Name inside tag `env:"<name>"` must be unique for each field.
 
 
 ### Flag provider
-Looks for `flag` tag and tries to set value from the command line flag `-name`
+Looks for `flag` tag and tries to set value from the command line flag `-first_name`
 ```go
     struct {
         // ...
-        Name     string `json:"name"  flag:"name|default_value|Description"`
+        Name     string `flag:"first_name|default_value|Description"`
         // ...
     }
 ```
-Name inside tag `flag:"<name>"` must be unique for each field. `default_value` and `description` sections are optional and can be omitted.
+Name inside tag `flag:"<name>"` must be unique for each field. `default_value` and `description` sections are `optional` and can be omitted.
 `NewFlagProvider(&cfg)` expects a pointer to the same object for initialization.
 
 *Note*: if program is executed with `-help` or `-h` flag you will see all available flags with description:
 ```bash
 Flags: 
-	-flag_name		"Description (default: default_value)"
+	-first_name		"Description (default: default_value)"
 ``` 
 And program execution will be terminated.
 

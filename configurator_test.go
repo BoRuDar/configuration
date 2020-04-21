@@ -10,11 +10,6 @@ import (
 )
 
 func TestConfigurator(t *testing.T) {
-	defer func() {
-		gFailIfCannotSet = false
-		gLoggingEnabled = false
-	}()
-
 	// setting command line flag
 	os.Args = []string{"smth", "-name=flag_value"}
 
@@ -27,19 +22,19 @@ func TestConfigurator(t *testing.T) {
 
 	// defining a struct
 	cfg := struct {
-		Name     string `json:"name"          default:"defaultName"         flag:"name"`
-		LastName string `json:"last_name"     default:"defaultLastName"`
-		Age      byte   `json:"age"           env:"AGE_ENV"`
-		BoolPtr  *bool  `json:"bool_ptr"      default:"false"`
+		Name     string `default:"defaultName"         flag:"name"`
+		LastName string `default:"defaultLastName"`
+		Age      byte   `env:"AGE_ENV"`
+		BoolPtr  *bool  `default:"false"`
 
 		ObjPtr *struct {
-			F32       float32       `json:"f32"            default:"32"`
-			StrPtr    *string       `json:"str_ptr"        default:"str_ptr_test"`
-			HundredMS time.Duration `json:"hundred_ms"     default:"100ms"`
+			F32       float32       `default:"32"`
+			StrPtr    *string       `default:"str_ptr_test"`
+			HundredMS time.Duration `default:"100ms"`
 		}
 
 		Obj struct {
-			IntPtr   *int16   `json:"int_ptr"         default:"123"`
+			IntPtr   *int16   `default:"123"`
 			NameYML  int      `default:"24"`
 			StrSlice []string `default:"one;two"`
 			IntSlice []int64  `default:"3; 4"`
