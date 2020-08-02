@@ -25,19 +25,19 @@ func New(
 		config:    cfgPtr,
 		providers: providers,
 		loggerFn:  log.Printf,
-		onErrorFn: func(err error) {
-			panic(err)
+		onFailToSetField: func(err error) {
+			log.Fatal(err)
 		},
-		loggingEnabled: true,
+		loggingEnabled: false,
 	}, nil
 }
 
 type configurator struct {
-	config         interface{}
-	providers      []Provider
-	onErrorFn      func(err error)
-	loggerFn       func(format string, v ...interface{})
-	loggingEnabled bool
+	config           interface{}
+	providers        []Provider
+	onFailToSetField func(err error)
+	loggerFn         func(format string, v ...interface{})
+	loggingEnabled   bool
 }
 
 // InitValues sets values into struct field using given set of providers
@@ -52,9 +52,15 @@ func (c *configurator) SetLogger(l func(format string, v ...interface{})) {
 	return
 }
 
-// SetOnErrorFn changes function which is called on errors
-func (c *configurator) SetOnErrorFn(fn func(error)) {
-	c.onErrorFn = fn
+// SetLogger changes logger
+func (c *configurator) EnableLogging(enable bool) {
+	c.loggingEnabled = enable
+	return
+}
+
+// SetOnFailFn sets function which will be called when no value set into the field
+func (c *configurator) SetOnFailFn(fn func(error)) {
+	c.onFailToSetField = fn
 }
 
 func (c configurator) fillUp(i interface{}, parentPath ...string) {
@@ -93,17 +99,15 @@ func (c configurator) fillUp(i interface{}, parentPath ...string) {
 func (c configurator) applyProviders(field reflect.StructField, v reflect.Value, currentPath []string) {
 	c.logf("current path: %v", currentPath)
 
-	var err error
 	for _, provider := range c.providers {
-		if err = provider.Provide(field, v, currentPath...); err != nil {
-			c.logf("provider error: %v \n", err)
-			continue
+		err := provider.Provide(field, v, currentPath...)
+		if err == nil {
+			return
 		}
-		c.logf("\n")
-		return
+		c.logf("provider error: %v", err)
 	}
 
-	c.onErrorFn(fmt.Errorf("field [%s] with tags [%v] cannot be set: %v", field.Name, field.Tag, err))
+	c.onFailToSetField(fmt.Errorf("field [%s] with tags [%v] cannot be set", field.Name, field.Tag))
 }
 
 func (c configurator) logf(format string, v ...interface{}) {

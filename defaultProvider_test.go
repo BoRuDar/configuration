@@ -47,18 +47,18 @@ func TestDefaultProviderPtr(t *testing.T) {
 	}
 }
 
-//func TestDefaultProviderFailed(t *testing.T) {
-//	type testStruct struct {
-//		Name string
-//	}
-//	testObj := testStruct{}
-//
-//	fieldType := reflect.TypeOf(&testObj).Elem().Field(0)
-//	fieldVal := reflect.ValueOf(&testObj).Elem().Field(0)
-//
-//	provider := NewDefaultProvider()
-//
-//	if err := provider.Provide(fieldType, fieldVal); err == nil {
-//		t.Fatal("must not be nil")
-//	}
-//}
+func TestDefaultProviderFailed(t *testing.T) {
+	type testStruct struct {
+		Name string
+	}
+	testObj := testStruct{}
+
+	fieldType := reflect.TypeOf(&testObj).Elem().Field(0)
+	fieldVal := reflect.ValueOf(&testObj).Elem().Field(0)
+
+	provider := NewDefaultProvider()
+
+	if err := provider.Provide(fieldType, fieldVal); err == nil {
+		t.Fatal("must not be nil")
+	}
+}

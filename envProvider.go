@@ -9,9 +9,7 @@ import (
 
 // NewEnvProvider creates provider which sets values from ENV variables (gets variable name from `env` tag)
 func NewEnvProvider() envProvider {
-	return envProvider{
-		//TODO: add name
-	}
+	return envProvider{}
 }
 
 type envProvider struct{}

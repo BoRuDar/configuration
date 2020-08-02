@@ -22,7 +22,7 @@ func TestConfigurator(t *testing.T) {
 
 	// defining a struct
 	cfg := struct {
-		Name     string `default:"defaultName"         flag:"name"`
+		Name     string `flag:"name"`
 		LastName string `default:"defaultLastName"`
 		Age      byte   `env:"AGE_ENV"`
 		BoolPtr  *bool  `default:"false"`
@@ -41,11 +41,17 @@ func TestConfigurator(t *testing.T) {
 		}
 	}{}
 
+	fileProvider, err := NewFileProvider("./testdata/input.yml")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
 	configurator, err := New(&cfg,
-		NewFlagProvider(&cfg),
-		NewEnvProvider(),
-		NewFileProvider("./testdata/input.yml"),
-		NewDefaultProvider(),
+		// order of execution will be kept:
+		NewFlagProvider(&cfg), // 1st
+		NewEnvProvider(),      // 2nd
+		fileProvider,          // 3rd
+		NewDefaultProvider(),  // 4th
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -53,7 +59,7 @@ func TestConfigurator(t *testing.T) {
 
 	configurator.InitValues()
 
-	//assert.Equal(t, "flag_value", cfg.Name)
+	assert.Equal(t, "flag_value", cfg.Name)
 	assert.Equal(t, "defaultLastName", cfg.LastName)
 	assert.Equal(t, byte(45), cfg.Age)
 	assert.NotNil(t, cfg.BoolPtr)
@@ -134,8 +140,7 @@ func TestSetLogger(t *testing.T) {
 		}
 		expectedLogs = []string{
 			"current path: [Name]",
-			"provider error: envProvider: key is empty \n",
-			"\n",
+			"provider error: envProvider: key is empty",
 		}
 	)
 
@@ -149,6 +154,7 @@ func TestSetLogger(t *testing.T) {
 	}
 
 	c.SetLogger(logFn)
+	c.EnableLogging(true)
 	c.InitValues()
 
 	assert.Equal(t, cfg.Name, "test_name")
