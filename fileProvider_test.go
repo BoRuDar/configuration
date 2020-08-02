@@ -2,12 +2,12 @@ package configuration
 
 import (
 	"encoding/json"
-	"gopkg.in/yaml.v2"
 	"reflect"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v2"
 )
 
 type testStruct struct {
