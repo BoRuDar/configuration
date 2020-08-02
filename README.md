@@ -34,7 +34,7 @@ Supported types:
 - complies with `12-factor app`
 
 # Quick start
-Import path `github.com/BoRuDar/configuration/v2`
+Import path `github.com/BoRuDar/configuration/v3`
 ```go
 // define a configuration object
 cfg := struct {
