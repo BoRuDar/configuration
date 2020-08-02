@@ -3,13 +3,12 @@ package configuration
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"reflect"
 )
 
 // New creates a new instance of the configurator.
-// 'gLoggingEnabled' and 'gFailIfCannotSet' both are set to 'true' by default
-// default logger function is set to `log.Printf`
 func New(
 	cfgPtr interface{}, // must be a pointer to a struct
 	providers ...Provider, // providers will be executed in order of their declaration
@@ -22,19 +21,23 @@ func New(
 		return configurator{}, errors.New("not a pointer to the struct")
 	}
 
-	gLoggingEnabled = true
-	gFailIfCannotSet = true
-	logger = log.Printf
-
 	return configurator{
 		config:    cfgPtr,
 		providers: providers,
+		loggerFn:  log.Printf,
+		onErrorFn: func(err error) {
+			panic(err)
+		},
+		loggingEnabled: true,
 	}, nil
 }
 
 type configurator struct {
-	config    interface{}
-	providers []Provider
+	config         interface{}
+	providers      []Provider
+	onErrorFn      func(err error)
+	loggerFn       func(format string, v ...interface{})
+	loggingEnabled bool
 }
 
 // InitValues sets values into struct field using given set of providers
@@ -44,21 +47,14 @@ func (c configurator) InitValues() {
 }
 
 // SetLogger changes logger
-func (c configurator) SetLogger(l Logger) configurator {
-	logger = l
-	return c
+func (c *configurator) SetLogger(l func(format string, v ...interface{})) {
+	c.loggerFn = l
+	return
 }
 
-// DisableLogging turns off logging
-func (c configurator) DisableLogging() configurator {
-	gLoggingEnabled = false
-	return c
-}
-
-// IgnoreErrors prevents calling os.Exit(1) if the lib fails to init a field
-func (c configurator) IgnoreErrors() configurator {
-	gFailIfCannotSet = false
-	return c
+// SetOnErrorFn changes function which is called on errors
+func (c *configurator) SetOnErrorFn(fn func(error)) {
+	c.onErrorFn = fn
 }
 
 func (c configurator) fillUp(i interface{}, parentPath ...string) {
@@ -95,14 +91,23 @@ func (c configurator) fillUp(i interface{}, parentPath ...string) {
 }
 
 func (c configurator) applyProviders(field reflect.StructField, v reflect.Value, currentPath []string) {
-	logf("configurator: current path: %v", currentPath)
+	c.logf("current path: %v", currentPath)
 
+	var err error
 	for _, provider := range c.providers {
-		if provider.Provide(field, v, currentPath...) {
-			logf("\n")
-			return
+		if err = provider.Provide(field, v, currentPath...); err != nil {
+			c.logf("provider error: %v \n", err)
+			continue
 		}
+		c.logf("\n")
+		return
 	}
-	logf("configurator: field [%s] with tags [%v] cannot be set!", field.Name, field.Tag)
-	fatalf("configurator: field [%s] with tags [%v] cannot be set!", field.Name, field.Tag)
+
+	c.onErrorFn(fmt.Errorf("field [%s] with tags [%v] cannot be set: %v", field.Name, field.Tag, err))
+}
+
+func (c configurator) logf(format string, v ...interface{}) {
+	if c.loggingEnabled {
+		c.loggerFn(format, v...)
+	}
 }

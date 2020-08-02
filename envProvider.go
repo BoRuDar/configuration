@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	"fmt"
 	"os"
 	"reflect"
 	"strings"
@@ -8,26 +9,24 @@ import (
 
 // NewEnvProvider creates provider which sets values from ENV variables (gets variable name from `env` tag)
 func NewEnvProvider() envProvider {
-	return envProvider{}
+	return envProvider{
+		//TODO: add name
+	}
 }
 
 type envProvider struct{}
 
-func (envProvider) Provide(field reflect.StructField, v reflect.Value, _ ...string) bool {
+func (envProvider) Provide(field reflect.StructField, v reflect.Value, _ ...string) error {
 	key := getEnvTag(field)
 	if len(key) == 0 {
 		// field doesn't have a proper tag
-		logf("envProvider: key is empty")
-		return false
+		return fmt.Errorf("envProvider: key is empty")
 	}
 
 	valStr, ok := os.LookupEnv(strings.ToUpper(key))
 	if !ok || len(valStr) == 0 {
-		logf("envProvider: os.LookupEnv returns empty value")
-		return false
+		return fmt.Errorf("envProvider: os.LookupEnv returns empty value")
 	}
 
-	SetField(field, v, valStr)
-	logf("envProvider: set [%s] to field [%s] with tags [%v]", valStr, field.Name, field.Tag)
-	return true
+	return SetField(field, v, valStr)
 }

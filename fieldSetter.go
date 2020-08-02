@@ -13,7 +13,7 @@ const sliceSeparator = ";"
 // SetField sets field with `valStr` value (converts to the proper type beforehand)
 func SetField(field reflect.StructField, v reflect.Value, valStr string) error {
 	if v.Kind() == reflect.Ptr {
-		return setPtrValue(field.Type.Elem(), v, valStr)
+		return setPtrValue(field.Type, v, valStr)
 	}
 	return setValue(field.Type, v, valStr)
 }
@@ -113,7 +113,7 @@ func setSlice(t reflect.Type, v reflect.Value, val string) error {
 }
 
 func setPtrValue(t reflect.Type, v reflect.Value, val string) (err error) {
-	switch t.Name() {
+	switch t.Elem().Name() {
 	case reflect.Int.String(): // doesn't care about 32bit systems
 		if i64, err := strconv.ParseInt(val, 10, 64); err == nil {
 			i := int(i64)
