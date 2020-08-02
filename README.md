@@ -34,11 +34,11 @@ Supported types:
 - complies with `12-factor app`
 
 # Quick start
-Import path `github.com/BoRuDar/configuration/v2`
+Import path `github.com/BoRuDar/configuration/v3`
 ```go
 // define a configuration object
 cfg := struct {
-    Name     string `default:"defaultName"         flag:"name"`
+    Name     string `flag:"name"`
     LastName string `default:"defaultLastName"`
     Age      byte   `env:"AGE_ENV"`
     BoolPtr  *bool  `default:"false"`
@@ -57,11 +57,16 @@ cfg := struct {
     }
 }{}
 
+fileProvider, err := NewFileProvider("./testdata/input.yml")
+if err != nil {
+    t.Fatalf("unexpected error: %v", err)
+}
+
 configurator, err := New(
     &cfg, // pointer to the object for configuration 
     NewFlagProvider(&cfg),  // 1. flag provider expects pointer to the object to initialize flags
     NewEnvProvider(),       // 2.
-    NewFileProvider("./testdata/input.yml"), // 3.
+    fileProvider,           // 3.
     NewDefaultProvider(),   // 4.
     // providers are executed in order of the declaration from 1 to 4 
 )
@@ -88,7 +93,7 @@ If none of providers found value - "zero" value of a field remains.
 You can define a custom provider which should satisfy next interface:
 ```go
 type Provider interface {
-	Provide(field reflect.StructField, v reflect.Value, pathToField ...string) bool
+	Provide(field reflect.StructField, v reflect.Value, pathToField ...string) error
 }
 ```
 

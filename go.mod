@@ -1,4 +1,4 @@
-module github.com/BoRuDar/configuration/v2
+module github.com/BoRuDar/configuration/v3
 
 go 1.14
 

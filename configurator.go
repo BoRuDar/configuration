@@ -3,13 +3,12 @@ package configuration
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"reflect"
 )
 
 // New creates a new instance of the configurator.
-// 'gLoggingEnabled' and 'gFailIfCannotSet' both are set to 'true' by default
-// default logger function is set to `log.Printf`
 func New(
 	cfgPtr interface{}, // must be a pointer to a struct
 	providers ...Provider, // providers will be executed in order of their declaration
@@ -22,19 +21,23 @@ func New(
 		return configurator{}, errors.New("not a pointer to the struct")
 	}
 
-	gLoggingEnabled = true
-	gFailIfCannotSet = true
-	logger = log.Printf
-
 	return configurator{
 		config:    cfgPtr,
 		providers: providers,
+		loggerFn:  log.Printf,
+		onFailToSetField: func(err error) {
+			log.Fatal(err)
+		},
+		loggingEnabled: false,
 	}, nil
 }
 
 type configurator struct {
-	config    interface{}
-	providers []Provider
+	config           interface{}
+	providers        []Provider
+	onFailToSetField func(err error)
+	loggerFn         func(format string, v ...interface{})
+	loggingEnabled   bool
 }
 
 // InitValues sets values into struct field using given set of providers
@@ -44,21 +47,20 @@ func (c configurator) InitValues() {
 }
 
 // SetLogger changes logger
-func (c configurator) SetLogger(l Logger) configurator {
-	logger = l
-	return c
+func (c *configurator) SetLogger(l func(format string, v ...interface{})) {
+	c.loggerFn = l
+	return
 }
 
-// DisableLogging turns off logging
-func (c configurator) DisableLogging() configurator {
-	gLoggingEnabled = false
-	return c
+// SetLogger changes logger
+func (c *configurator) EnableLogging(enable bool) {
+	c.loggingEnabled = enable
+	return
 }
 
-// IgnoreErrors prevents calling os.Exit(1) if the lib fails to init a field
-func (c configurator) IgnoreErrors() configurator {
-	gFailIfCannotSet = false
-	return c
+// SetOnFailFn sets function which will be called when no value set into the field
+func (c *configurator) SetOnFailFn(fn func(error)) {
+	c.onFailToSetField = fn
 }
 
 func (c configurator) fillUp(i interface{}, parentPath ...string) {
@@ -95,14 +97,21 @@ func (c configurator) fillUp(i interface{}, parentPath ...string) {
 }
 
 func (c configurator) applyProviders(field reflect.StructField, v reflect.Value, currentPath []string) {
-	logf("configurator: current path: %v", currentPath)
+	c.logf("configurator: current path: %v", currentPath)
 
 	for _, provider := range c.providers {
-		if provider.Provide(field, v, currentPath...) {
-			logf("\n")
+		err := provider.Provide(field, v, currentPath...)
+		if err == nil {
 			return
 		}
+		c.logf("configurator: %v", err)
 	}
-	logf("configurator: field [%s] with tags [%v] cannot be set!", field.Name, field.Tag)
-	fatalf("configurator: field [%s] with tags [%v] cannot be set!", field.Name, field.Tag)
+
+	c.onFailToSetField(fmt.Errorf("configurator: field [%s] with tags [%v] cannot be set", field.Name, field.Tag))
+}
+
+func (c configurator) logf(format string, v ...interface{}) {
+	if c.loggingEnabled {
+		c.loggerFn(format, v...)
+	}
 }

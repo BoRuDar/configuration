@@ -21,8 +21,8 @@ func TestFlagProvider(t *testing.T) {
 	provider := NewFlagProvider(&testObj)
 	testValue := "flag_value"
 
-	if !provider.Provide(fieldType, fieldVal) {
-		t.Fatal("cannot set value")
+	if err := provider.Provide(fieldType, fieldVal); err != nil {
+		t.Fatalf("cannot set value: %v", err)
 	}
 
 	assert.Equal(t, testValue, testObj.Name)
@@ -32,6 +32,7 @@ func TestGetFlagData(t *testing.T) {
 	tests := map[string]struct {
 		input    interface{}
 		expected *flagData
+		hasErr   bool
 	}{
 		"key": {
 			input: struct {
@@ -75,6 +76,7 @@ func TestGetFlagData(t *testing.T) {
 				Name string `flag:"||||"`
 			}{},
 			expected: nil,
+			hasErr:   true,
 		},
 	}
 
@@ -82,8 +84,9 @@ func TestGetFlagData(t *testing.T) {
 		test := test
 		t.Run(name, func(t *testing.T) {
 			field := reflect.TypeOf(test.input).Field(0)
-			gotFlagData := getFlagData(field)
+			gotFlagData, err := getFlagData(field)
 
+			assert.Equal(t, test.hasErr, err != nil)
 			assert.Equal(t, test.expected, gotFlagData)
 		})
 	}

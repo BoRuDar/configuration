@@ -29,7 +29,10 @@ func TestFileProvider_yml(t *testing.T) {
 		Timeout: time.Millisecond * 100,
 	}
 
-	provider := NewFileProvider("./testdata/input.yml")
+	provider, err := NewFileProvider("./testdata/input.yml")
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
 
 	var ( // field: Inside.Beta
 		fieldType = reflect.TypeOf(&testObj).Elem().Field(1).Type.Field(0)
@@ -42,11 +45,11 @@ func TestFileProvider_yml(t *testing.T) {
 		fieldPath2 = []string{"Timeout"}
 	)
 
-	ok1 := provider.Provide(fieldType, fieldVal, fieldPath...)
-	ok2 := provider.Provide(fieldType2, fieldVal2, fieldPath2...)
+	err2 := provider.Provide(fieldType, fieldVal, fieldPath...)
+	err3 := provider.Provide(fieldType2, fieldVal2, fieldPath2...)
 
-	assert.True(t, ok1, "cannot set value for Inside.Beta")
-	assert.True(t, ok2, "cannot set value for Timeout")
+	assert.Nil(t, err2, "cannot set value for Inside.Beta")
+	assert.Nil(t, err3, "cannot set value for Timeout")
 	assert.Equal(t, expected, testObj)
 }
 
@@ -56,15 +59,18 @@ func TestFileProvider_json(t *testing.T) {
 		Timeout: time.Millisecond * 101,
 	}
 
-	provider := NewFileProvider("./testdata/input.json")
+	provider, err := NewFileProvider("./testdata/input.json")
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
 
 	fieldType := reflect.TypeOf(&testObj).Elem().Field(2)
 	fieldVal := reflect.ValueOf(&testObj).Elem().Field(2)
 	fieldPath := []string{"Timeout"}
 
-	ok := provider.Provide(fieldType, fieldVal, fieldPath...)
+	err1 := provider.Provide(fieldType, fieldVal, fieldPath...)
 
-	assert.True(t, ok, "cannot set value")
+	assert.Nil(t, err1, "cannot set value")
 	assert.Equal(t, expected, testObj)
 }
 
@@ -159,9 +165,9 @@ func TestDecodeFunc(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
-			gotFn := decodeFunc(test.input)
-			if gotFn == nil {
-				t.Fatal("expected function but got nil")
+			_, err := decodeFunc(test.input)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
 			}
 		})
 	}

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"reflect"
 	"strings"
@@ -13,20 +12,25 @@ import (
 )
 
 // NewFileProvider creates new provider which read values from files (json, yaml)
-func NewFileProvider(fileName string) (fp fileProvider) {
+func NewFileProvider(fileName string) (fp fileProvider, err error) {
 	file, err := os.Open(fileName)
 	if err != nil {
-		return
+		return fp, err
 	}
 	defer file.Close()
 
-	if b, err := ioutil.ReadAll(file); err == nil {
-		if fn := decodeFunc(fileName); fn != nil {
-			err := fn(b, &fp.fileData)
-			if err != nil {
-				log.Println(err)
-			}
-		}
+	b, err := ioutil.ReadAll(file)
+	if err != nil {
+		return fp, err
+	}
+
+	fn, err := decodeFunc(fileName)
+	if err != nil {
+		return fp, err
+	}
+
+	if err := fn(b, &fp.fileData); err != nil {
+		return fp, err
 	}
 	return
 }
@@ -35,32 +39,29 @@ type fileProvider struct {
 	fileData interface{}
 }
 
-func (fp fileProvider) Provide(field reflect.StructField, v reflect.Value, path ...string) bool {
+func (fp fileProvider) Provide(field reflect.StructField, v reflect.Value, path ...string) error {
 	valStr, ok := findValStrByPath(fp.fileData, path)
 	if !ok {
-		return false
+		return fmt.Errorf("fileProvider: findValStrByPath returns empty value")
 	}
 
-	SetField(field, v, valStr)
-	logf("fileProvider: set [%s] to field [%s]", valStr, strings.Join(path, "."))
-	return true
+	return SetField(field, v, valStr)
 }
 
-func decodeFunc(fileName string) func(data []byte, v interface{}) error {
+func decodeFunc(fileName string) (func(data []byte, v interface{}) error, error) {
 	fileName = strings.ToLower(fileName)
 
 	if strings.HasSuffix(fileName, ".json") {
-		return json.Unmarshal
+		return json.Unmarshal, nil
 	}
 	if strings.HasSuffix(fileName, ".yaml") {
-		return yaml.Unmarshal
+		return yaml.Unmarshal, nil
 	}
 	if strings.HasSuffix(fileName, ".yml") {
-		return yaml.Unmarshal
+		return yaml.Unmarshal, nil
 	}
 
-	logf("fileProvider: unsupported file type: %q", fileName)
-	return nil
+	return nil, fmt.Errorf("fileProvider: unsupported file type: %q", fileName)
 }
 
 func findValStrByPath(i interface{}, path []string) (string, bool) {

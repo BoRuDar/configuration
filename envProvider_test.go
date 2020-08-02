@@ -24,8 +24,8 @@ func TestEnvProvider(t *testing.T) {
 	}
 	defer removeEnvKey()
 
-	if !provider.Provide(fieldType, fieldVal) {
-		t.Fatal("cannot set value")
+	if err := provider.Provide(fieldType, fieldVal); err != nil {
+		t.Fatalf("cannot set value: %v", err)
 	}
 
 	if !reflect.DeepEqual(testValue, testObj.Name) {
@@ -44,8 +44,8 @@ func TestEnvProviderFailed(t *testing.T) {
 
 	provider := NewEnvProvider()
 
-	if provider.Provide(fieldType, fieldVal) {
-		t.Fatal("must be false")
+	if err := provider.Provide(fieldType, fieldVal); err == nil {
+		t.Fatal("must NOT be nil")
 	}
 }
 

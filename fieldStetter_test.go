@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// SetValue tests
+
 func TestSetValue_String(t *testing.T) {
 	var testStr string
 	fieldType := reflect.TypeOf(&testStr).Elem()
@@ -94,13 +96,29 @@ func TestSetValue_Bool(t *testing.T) {
 	}
 }
 
+// SetPtr tests
+
+func TestSetPtr_String(t *testing.T) {
+	var testStr *string
+	fieldType := reflect.TypeOf(&testStr).Elem()
+	fieldVal := reflect.ValueOf(&testStr).Elem()
+	testValue := "test_val1"
+
+	if err := setPtrValue(fieldType, fieldVal, testValue); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(*testStr, testValue) {
+		t.Fatalf("\nexpected result: [%s] \nbut got: [%s]", testValue, *testStr)
+	}
+}
+
 func TestSetPtrValue_Ints(t *testing.T) {
 	testValue := "42"
 
 	{
 		// int
 		var testInt *int
-		fieldType := reflect.TypeOf(&testInt).Elem().Elem()
+		fieldType := reflect.TypeOf(&testInt).Elem()
 		fieldVal := reflect.ValueOf(&testInt).Elem()
 
 		setPtrValue(fieldType, fieldVal, testValue)
@@ -112,7 +130,7 @@ func TestSetPtrValue_Ints(t *testing.T) {
 	{
 		// int8
 		var testInt8 *int8
-		fieldType := reflect.TypeOf(&testInt8).Elem().Elem()
+		fieldType := reflect.TypeOf(&testInt8).Elem()
 		fieldVal := reflect.ValueOf(&testInt8).Elem()
 
 		setPtrValue(fieldType, fieldVal, testValue)
@@ -124,7 +142,7 @@ func TestSetPtrValue_Ints(t *testing.T) {
 	{
 		// int16
 		var testInt16 *int16
-		fieldType := reflect.TypeOf(&testInt16).Elem().Elem()
+		fieldType := reflect.TypeOf(&testInt16).Elem()
 		fieldVal := reflect.ValueOf(&testInt16).Elem()
 
 		setPtrValue(fieldType, fieldVal, testValue)
@@ -136,7 +154,7 @@ func TestSetPtrValue_Ints(t *testing.T) {
 	{
 		// int32
 		var testInt32 *int32
-		fieldType := reflect.TypeOf(&testInt32).Elem().Elem()
+		fieldType := reflect.TypeOf(&testInt32).Elem()
 		fieldVal := reflect.ValueOf(&testInt32).Elem()
 
 		setPtrValue(fieldType, fieldVal, testValue)
@@ -148,7 +166,7 @@ func TestSetPtrValue_Ints(t *testing.T) {
 	{
 		// int64
 		var testInt64 *int64
-		fieldType := reflect.TypeOf(&testInt64).Elem().Elem()
+		fieldType := reflect.TypeOf(&testInt64).Elem()
 		fieldVal := reflect.ValueOf(&testInt64).Elem()
 
 		setPtrValue(fieldType, fieldVal, testValue)
@@ -164,7 +182,7 @@ func TestSetPtrValue_Uints(t *testing.T) {
 	{
 		// uint
 		var testUint *uint
-		fieldType := reflect.TypeOf(&testUint).Elem().Elem()
+		fieldType := reflect.TypeOf(&testUint).Elem()
 		fieldVal := reflect.ValueOf(&testUint).Elem()
 
 		setPtrValue(fieldType, fieldVal, testValue)
@@ -176,7 +194,7 @@ func TestSetPtrValue_Uints(t *testing.T) {
 	{
 		// uint8
 		var testUint8 *uint8
-		fieldType := reflect.TypeOf(&testUint8).Elem().Elem()
+		fieldType := reflect.TypeOf(&testUint8).Elem()
 		fieldVal := reflect.ValueOf(&testUint8).Elem()
 
 		setPtrValue(fieldType, fieldVal, testValue)
@@ -188,7 +206,7 @@ func TestSetPtrValue_Uints(t *testing.T) {
 	{
 		// uint16
 		var testUint16 *uint16
-		fieldType := reflect.TypeOf(&testUint16).Elem().Elem()
+		fieldType := reflect.TypeOf(&testUint16).Elem()
 		fieldVal := reflect.ValueOf(&testUint16).Elem()
 
 		setPtrValue(fieldType, fieldVal, testValue)
@@ -200,7 +218,7 @@ func TestSetPtrValue_Uints(t *testing.T) {
 	{
 		// uint32
 		var testUint32 *uint32
-		fieldType := reflect.TypeOf(&testUint32).Elem().Elem()
+		fieldType := reflect.TypeOf(&testUint32).Elem()
 		fieldVal := reflect.ValueOf(&testUint32).Elem()
 
 		setPtrValue(fieldType, fieldVal, testValue)
@@ -212,7 +230,7 @@ func TestSetPtrValue_Uints(t *testing.T) {
 	{
 		// uint64
 		var testUint64 *uint64
-		fieldType := reflect.TypeOf(&testUint64).Elem().Elem()
+		fieldType := reflect.TypeOf(&testUint64).Elem()
 		fieldVal := reflect.ValueOf(&testUint64).Elem()
 
 		setPtrValue(fieldType, fieldVal, testValue)
@@ -228,7 +246,7 @@ func TestSetPtrValue_Floats(t *testing.T) {
 	{
 		// float32
 		var testFloat32 *float32
-		fieldType := reflect.TypeOf(&testFloat32).Elem().Elem()
+		fieldType := reflect.TypeOf(&testFloat32).Elem()
 		fieldVal := reflect.ValueOf(&testFloat32).Elem()
 
 		setPtrValue(fieldType, fieldVal, testValue)
@@ -242,7 +260,7 @@ func TestSetPtrValue_Floats(t *testing.T) {
 	{
 		// float64
 		var testFloat32 *float64
-		fieldType := reflect.TypeOf(&testFloat32).Elem().Elem()
+		fieldType := reflect.TypeOf(&testFloat32).Elem()
 		fieldVal := reflect.ValueOf(&testFloat32).Elem()
 
 		setPtrValue(fieldType, fieldVal, testValue)
@@ -256,15 +274,19 @@ func TestSetPtrValue_Floats(t *testing.T) {
 
 func TestSetPtrValue_Bool(t *testing.T) {
 	var testBool *bool
-	fieldType := reflect.TypeOf(&testBool).Elem().Elem()
+	fieldType := reflect.TypeOf(&testBool).Elem()
 	fieldVal := reflect.ValueOf(&testBool).Elem()
 	testValue := "true"
 
-	setPtrValue(fieldType, fieldVal, testValue)
+	if err := setPtrValue(fieldType, fieldVal, testValue); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if fieldVal.Elem().Bool() != true {
 		t.Fatalf("\nexpected result: [%s] \nbut got: [%v]", testValue, testBool)
 	}
 }
+
+// SetValue slice tests
 
 func TestSetValue_StringSlice(t *testing.T) {
 	var testStr []string
