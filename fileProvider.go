@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"reflect"
 	"strings"
@@ -13,20 +12,25 @@ import (
 )
 
 // NewFileProvider creates new provider which read values from files (json, yaml)
-func NewFileProvider(fileName string) (fp fileProvider) {
+func NewFileProvider(fileName string) (fp fileProvider, err error) {
 	file, err := os.Open(fileName)
 	if err != nil {
-		return
+		return fp, err
 	}
 	defer file.Close()
 
-	if b, err := ioutil.ReadAll(file); err == nil {
-		if fn, _ := decodeFunc(fileName); fn != nil { // todo: check err
-			err := fn(b, &fp.fileData)
-			if err != nil {
-				log.Println(err)
-			}
-		}
+	b, err := ioutil.ReadAll(file)
+	if err != nil {
+		return fp, err
+	}
+
+	fn, err := decodeFunc(fileName)
+	if err != nil {
+		return fp, err
+	}
+
+	if err := fn(b, &fp.fileData); err != nil {
+		return fp, err
 	}
 	return
 }
