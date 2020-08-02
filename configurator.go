@@ -97,17 +97,17 @@ func (c configurator) fillUp(i interface{}, parentPath ...string) {
 }
 
 func (c configurator) applyProviders(field reflect.StructField, v reflect.Value, currentPath []string) {
-	c.logf("current path: %v", currentPath)
+	c.logf("configurator: current path: %v", currentPath)
 
 	for _, provider := range c.providers {
 		err := provider.Provide(field, v, currentPath...)
 		if err == nil {
 			return
 		}
-		c.logf("provider error: %v", err)
+		c.logf("configurator: %v", err)
 	}
 
-	c.onFailToSetField(fmt.Errorf("field [%s] with tags [%v] cannot be set", field.Name, field.Tag))
+	c.onFailToSetField(fmt.Errorf("configurator: field [%s] with tags [%v] cannot be set", field.Name, field.Tag))
 }
 
 func (c configurator) logf(format string, v ...interface{}) {

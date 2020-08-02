@@ -139,8 +139,8 @@ func TestSetLogger(t *testing.T) {
 			logs = append(logs, fmt.Sprintf(format, v...))
 		}
 		expectedLogs = []string{
-			"current path: [Name]",
-			"provider error: envProvider: key is empty",
+			"configurator: current path: [Name]",
+			"configurator: envProvider: key is empty",
 		}
 	)
 
