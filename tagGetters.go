@@ -17,3 +17,7 @@ func getJSONTag(f reflect.StructField) string {
 func getDefaultTag(f reflect.StructField) string {
 	return f.Tag.Get("default")
 }
+
+func getValidateTag(f reflect.StructField) string {
+	return f.Tag.Get("validate")
+}
