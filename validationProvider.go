@@ -19,7 +19,7 @@ type validationProvider struct{
 func (vP validationProvider) Provide(field reflect.StructField, v reflect.Value, currentPath ...string) error {
 	vP.provider.Provide(field, v, currentPath...)
 
-	valStr := getValidateTag()
+	valStr := getValidateTag(field)
 	validate := validator.New()
 	return validate.Var(v.Interface(), valStr)
 }
