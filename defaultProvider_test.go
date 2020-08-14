@@ -47,9 +47,9 @@ func TestDefaultProviderPtr(t *testing.T) {
 	}
 }
 
-func TestDefaultProviderFailed(t *testing.T) {
+func TestDefaultProviderEmpty(t *testing.T) {
 	type testStruct struct {
-		Name string
+		Name string `default:""`
 	}
 	testObj := testStruct{}
 
@@ -57,8 +57,10 @@ func TestDefaultProviderFailed(t *testing.T) {
 	fieldVal := reflect.ValueOf(&testObj).Elem().Field(0)
 
 	provider := NewDefaultProvider()
-
-	if err := provider.Provide(fieldType, fieldVal); err == nil {
-		t.Fatal("must not be nil")
+	
+	provider.Provide(fieldType, fieldVal)
+	
+	if !reflect.DeepEqual("", testObj.Name) {
+		t.Fatalf("\nexpected result: [%s] \nbut got: [%s]", "", testObj.Name)
 	}
 }

@@ -1,6 +1,8 @@
 package configuration
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // Provider defines interface for existing and future custom providers
 type Provider interface {

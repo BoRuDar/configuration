@@ -1,11 +1,14 @@
 package configuration
 
 import (
-	"log"
+	"fmt"
 	"reflect"
+	"errors"
 
 	"github.com/go-playground/validator/v10"
 )
+
+var ErrByProvider = errors.New("provider error")
 
 // NewValidationProvider creates new provider which validates the provided value against the validate tag.
 func NewValidationProvider(p Provider) validationProvider {
@@ -19,9 +22,8 @@ type validationProvider struct{
 }
 
 func (vP validationProvider) Provide(field reflect.StructField, v reflect.Value, currentPath ...string) error {
-	err := vP.provider.Provide(field, v, currentPath...)
-	if err != nil {
-		log.Println(err)
+	if err := vP.provider.Provide(field, v, currentPath...); err != nil {
+		return fmt.Errorf("validationProvider: %w, cannot be correct value: %v", ErrByProvider, err)
 	}
 
 	valStr := getValidateTag(field)

@@ -1,7 +1,6 @@
 package configuration
 
 import (
-	"fmt"
 	"reflect"
 )
 
@@ -14,9 +13,5 @@ type defaultProvider struct{}
 
 func (defaultProvider) Provide(field reflect.StructField, v reflect.Value, _ ...string) error {
 	valStr := getDefaultTag(field)
-	if len(valStr) == 0 {
-		return fmt.Errorf("defaultProvider: getDefaultTag returns empty value")
-	}
-
 	return SetField(field, v, valStr)
 }

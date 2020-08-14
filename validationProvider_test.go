@@ -3,6 +3,7 @@ package configuration
 import (
 	"reflect"
 	"testing"
+	"errors"
 )
 
 func TestValidationProvider(t *testing.T) {
@@ -39,5 +40,25 @@ func TestValidationProviderFail(t *testing.T) {
 
 	if err := provider.Provide(fieldType, fieldVal); err == nil {
 		t.Fatal("must not be nil")
+	}
+}
+
+func TestValidationProviderFailFromProvider(t *testing.T) {
+	type testStruct struct {
+		Name string `validate:"required" env:"TEST_ENV"`
+	}
+	testObj := testStruct{}
+
+	fieldType := reflect.TypeOf(&testObj).Elem().Field(0)
+	fieldVal := reflect.ValueOf(&testObj).Elem().Field(0)
+
+	provider := NewValidationProvider(NewEnvProvider())
+
+	err := provider.Provide(fieldType, fieldVal)
+	if err == nil {
+		t.Fatal("must not be nil")
+	}
+	if !errors.Is(err, ErrByProvider) {
+		t.Fatal("err does not wrap ErrByProvider")
 	}
 }
