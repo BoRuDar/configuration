@@ -11,6 +11,7 @@ Available features:
 - setting values from *environment* variables - `NewEnvProvider()`
 - setting values from command line *flags* - `NewFlagProvider(&cfg)`
 - setting values from *files* (JSON or YAML) - `NewFileProvider("./testdata/input.yml")`
+- validating set values - `NewValidationProvider(Provider)`
 
 Supported types:
 - `string`, `*string`, `[]string`
@@ -38,10 +39,11 @@ Import path `github.com/BoRuDar/configuration/v3`
 ```go
 // define a configuration object
 cfg := struct {
-    Name     string `flag:"name"`
+    Name     string `flag:"name" `
     LastName string `default:"defaultLastName"`
-    Age      byte   `env:"AGE_ENV"`
+    Age      byte   `env:"AGE_ENV" validate:"required"`
     BoolPtr  *bool  `default:"false"`
+    Picture  string `flag:"picture" validate:"required,path"`
 
     ObjPtr *struct {
         F32       float32       `default:"32"`
@@ -64,10 +66,10 @@ if err != nil {
 
 configurator, err := New(
     &cfg, // pointer to the object for configuration 
-    NewFlagProvider(&cfg),  // 1. flag provider expects pointer to the object to initialize flags
-    NewEnvProvider(),       // 2.
-    fileProvider,           // 3.
-    NewDefaultProvider(),   // 4.
+    NewValidationProvider(NewFlagProvider(&cfg)),  // 1. flag provider expects pointer to the object to initialize flags
+    NewValidationProvider(NewEnvProvider()),       // 2.
+    NewValidationProvider(fileProvider),           // 3.
+    NewValidationProvider(NewDefaultProvider()),   // 4.
     // providers are executed in order of the declaration from 1 to 4 
 )
 if err != nil {
@@ -144,3 +146,19 @@ Doesn't require any specific tags. JSON and YAML formats of files are supported.
 ```go
     NewFileProvider("./testdata/input.yml")
 ```
+
+### Validation Provider
+Looks for the `validate` tag and validates the field after it has been set by the provider.
+```go
+  struct {
+        // ...
+        IP string `default:"127.0.0.1" "validate:"ip_addr"`
+        // ...
+    }
+
+  NewValidationProvider(NewDefaultProvider())
+```
+
+This uses [`go-playground/validate`]() for validation, you can find a list of the usable validators [here](https://pkg.go.dev/github.com/go-playground/validator/v10?tab=doc#hdr-Baked_In_Validators_and_Tags).
+
+*Note*: This provider validates one field at a time, so you can not use validators that use other fields (eg. [`Required_With`](https://pkg.go.dev/github.com/go-playground/validator/v10?tab=doc#hdr-Required_With), etc.).

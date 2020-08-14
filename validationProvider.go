@@ -1,8 +1,10 @@
 package configuration
 
 import (
-	"github.com/go-playground/validator/v10"
+	"log"
 	"reflect"
+
+	"github.com/go-playground/validator/v10"
 )
 
 // NewValidationProvider creates new provider which validates the provided value against the validate tag.
@@ -17,7 +19,10 @@ type validationProvider struct{
 }
 
 func (vP validationProvider) Provide(field reflect.StructField, v reflect.Value, currentPath ...string) error {
-	vP.provider.Provide(field, v, currentPath...)
+	err := vP.provider.Provide(field, v, currentPath...)
+	if err != nil {
+		log.Println(err)
+	}
 
 	valStr := getValidateTag(field)
 	validate := validator.New()
