@@ -101,7 +101,10 @@ func (fp flagProvider) Provide(field reflect.StructField, v reflect.Value, _ ...
 	}
 
 	val := fn()
-	return SetField(field, v, *val)
+	if *val != fd.defaultVal {
+		return SetField(field, v, *val)
+	}
+	return fmt.Errorf("flagProvider: value for key [%s] is same as default [%s], ignoring", fd.key, fd.defaultVal)
 }
 
 func getFlagData(field reflect.StructField) (*flagData, error) {
