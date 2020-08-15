@@ -15,7 +15,7 @@ type defaultProvider struct{}
 func (defaultProvider) Provide(field reflect.StructField, v reflect.Value, _ ...string) error {
 	valStr := getDefaultTag(field)
 	if len(valStr) == 0 {
-		return fmt.Errorf("defaultProvider: getDefaultTag returns empty value")
+		return fmt.Errorf("defaultProvider: %w", ErrEmptyValue)
 	}
 
 	return SetField(field, v, valStr)

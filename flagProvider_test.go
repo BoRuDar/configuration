@@ -28,6 +28,45 @@ func TestFlagProvider(t *testing.T) {
 	assert.Equal(t, testValue, testObj.Name)
 }
 
+func TestFlagProvider_WithDescription(t *testing.T) {
+	type testStruct struct {
+		Name string `flag:"flag_name2||Description"`
+	}
+	testObj := testStruct{}
+	os.Args = []string{"smth", "-flag_name2=flag_value"}
+
+	fieldType := reflect.TypeOf(&testObj).Elem().Field(0)
+	fieldVal := reflect.ValueOf(&testObj).Elem().Field(0)
+
+	provider := NewFlagProvider(&testObj)
+	testValue := "flag_value"
+
+	if err := provider.Provide(fieldType, fieldVal); err != nil {
+		t.Fatalf("cannot set value: %v", err)
+	}
+
+	assert.Equal(t, testValue, testObj.Name)
+}
+
+func TestFlagProvider_WithDefault(t *testing.T) {
+	type testStruct struct {
+		Name string `flag:"flag_name3|default_val"`
+	}
+	testObj := testStruct{}
+
+	fieldType := reflect.TypeOf(&testObj).Elem().Field(0)
+	fieldVal := reflect.ValueOf(&testObj).Elem().Field(0)
+
+	provider := NewFlagProvider(&testObj)
+	testValue := "default_val"
+
+	if err := provider.Provide(fieldType, fieldVal); err != nil {
+		t.Fatalf("cannot set value: %v", err)
+	}
+
+	assert.Equal(t, testValue, testObj.Name)
+}
+
 func TestGetFlagData(t *testing.T) {
 	tests := map[string]struct {
 		input    interface{}

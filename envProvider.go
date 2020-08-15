@@ -23,7 +23,7 @@ func (envProvider) Provide(field reflect.StructField, v reflect.Value, _ ...stri
 
 	valStr, ok := os.LookupEnv(strings.ToUpper(key))
 	if !ok || len(valStr) == 0 {
-		return fmt.Errorf("envProvider: os.LookupEnv returns empty value")
+		return fmt.Errorf("envProvider: %w", ErrEmptyValue)
 	}
 
 	return SetField(field, v, valStr)

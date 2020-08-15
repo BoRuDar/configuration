@@ -101,6 +101,10 @@ func (fp flagProvider) Provide(field reflect.StructField, v reflect.Value, _ ...
 	}
 
 	val := fn()
+	if val == nil || len(*val) == 0 {
+		return fmt.Errorf("flagProvider: %w", ErrEmptyValue)
+	}
+
 	return SetField(field, v, *val)
 }
 
