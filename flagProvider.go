@@ -101,8 +101,8 @@ func (fp flagProvider) Provide(field reflect.StructField, v reflect.Value, _ ...
 	}
 
 	val := fn()
-	if len(*val) == 0 {
-		return fmt.Errorf("flagProvider: flag %s returns empty value", fd.key)
+	if *val == fd.defaultVal {
+		return fmt.Errorf("flagProvider: flag %s returns default value", fd.key)
 	}
 	return SetField(field, v, *val)
 }
