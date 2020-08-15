@@ -160,3 +160,23 @@ func TestSetLogger(t *testing.T) {
 	assert.Equal(t, cfg.Name, "test_name")
 	assert.Equal(t, expectedLogs, logs)
 }
+
+func TestFallBackToDefault(t *testing.T) {
+	// defining a struct
+	cfg := struct {
+		NameFlag string `flag:"name_flag||Some description"   default:"default_val"`
+	}{}
+
+	configurator, err := New(&cfg,
+		NewFlagProvider(&cfg),
+		NewDefaultProvider(),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	configurator.EnableLogging(true)
+	configurator.InitValues()
+
+	assert.Equal(t, "default_val", cfg.NameFlag)
+}

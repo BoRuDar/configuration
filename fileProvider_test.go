@@ -145,20 +145,29 @@ func TestFindValStrByPath(t *testing.T) {
 
 func TestDecodeFunc(t *testing.T) {
 	tests := []struct {
-		name  string
-		input string
+		name        string
+		input       string
+		expectError bool
 	}{
 		{
-			name:  "json",
-			input: "some_name.json",
+			name:        "json",
+			input:       "some_name.json",
+			expectError: false,
 		},
 		{
-			name:  "yaml",
-			input: "some_name.yaml",
+			name:        "yaml",
+			input:       "some_name.yaml",
+			expectError: false,
 		},
 		{
-			name:  "yml",
-			input: "some_name.yml",
+			name:        "yml",
+			input:       "some_name.yml",
+			expectError: false,
+		},
+		{
+			name:        "unsupported",
+			input:       "some_name.bad",
+			expectError: true,
 		},
 	}
 
@@ -166,7 +175,7 @@ func TestDecodeFunc(t *testing.T) {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
 			_, err := decodeFunc(test.input)
-			if err != nil {
+			if err != nil && !test.expectError {
 				t.Fatalf("unexpected error: %v", err)
 			}
 		})
