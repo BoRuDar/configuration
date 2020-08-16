@@ -89,7 +89,10 @@ You can specify one or more providers. They will be executed in order of definit
 ```
 If provider set value successfully next ones will not be executed (if flag provider from the sample above found a value env and default providers are skipped). 
 The value of first successfully executed provider will be set.
-If none of providers found value - "zero" value of a field remains.
+If none of providers found value - an application will be terminated.
+This behavior can be changed with `configurator.SetOnFailFn` method.
+
+### Custom provider
 You can define a custom provider which should satisfy next interface:
 ```go
 type Provider interface {
