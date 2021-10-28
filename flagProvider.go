@@ -14,17 +14,19 @@ type FlagProviderOption func(*flagProvider)
 
 // NewFlagProvider creates a new provider to fetch data from flags like: --flag_name some_value
 func NewFlagProvider(ptrToCfg interface{}, opts ...FlagProviderOption) flagProvider {
+	var parseError error
 	fp := flagProvider{
 		flagsValues: map[string]func() *string{},
 		flags:       map[string]*flagData{},
 		flagSet:     flag.NewFlagSet("", flag.ContinueOnError),
+		parseError:  &parseError,
 	}
 	for _, f := range opts {
 		f(&fp)
 	}
 	fp.initFlagProvider(ptrToCfg)
 
-	fp.flagSet.Parse(os.Args[1:])
+	*fp.parseError = fp.flagSet.Parse(os.Args[1:])
 	return fp
 }
 
@@ -39,10 +41,17 @@ func WithFlagSet(s FlagSet) FlagProviderOption {
 	}
 }
 
+func WithParseError(ep *error) FlagProviderOption {
+	return func(fp *flagProvider) {
+		fp.parseError = ep
+	}
+}
+
 type flagProvider struct {
 	flagsValues map[string]func() *string
 	flags       map[string]*flagData
 	flagSet     FlagSet
+	parseError  *error
 }
 
 type flagData struct {
