@@ -3,27 +3,46 @@ package configuration
 import (
 	"flag"
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 )
 
 const flagSeparator = "|"
 
+type FlagProviderOption func(*flagProvider)
+
 // NewFlagProvider creates a new provider to fetch data from flags like: --flag_name some_value
-func NewFlagProvider(ptrToCfg interface{}) flagProvider {
+func NewFlagProvider(ptrToCfg interface{}, opts ...FlagProviderOption) flagProvider {
 	fp := flagProvider{
 		flagsValues: map[string]func() *string{},
 		flags:       map[string]*flagData{},
+		flagSet:     flag.NewFlagSet("", flag.ContinueOnError),
+	}
+	for _, f := range opts {
+		f(&fp)
 	}
 	fp.initFlagProvider(ptrToCfg)
 
-	flag.Parse()
+	fp.flagSet.Parse(os.Args[1:])
 	return fp
+}
+
+type FlagSet interface {
+	Parse([]string) error
+	String(string, string, string) *string
+}
+
+func WithFlagSet(s FlagSet) FlagProviderOption {
+	return func(fp *flagProvider) {
+		fp.flagSet = s
+	}
 }
 
 type flagProvider struct {
 	flagsValues map[string]func() *string
 	flags       map[string]*flagData
+	flagSet     FlagSet
 }
 
 type flagData struct {
@@ -78,7 +97,7 @@ func (fp flagProvider) setFlagCallbacks(field reflect.StructField) error {
 	}
 	fp.flags[fd.key] = fd
 
-	valStr := flag.String(fd.key, fd.defaultVal, fd.usage)
+	valStr := fp.flagSet.String(fd.key, fd.defaultVal, fd.usage)
 	fp.flagsValues[fd.key] = func() *string {
 		return valStr
 	}
