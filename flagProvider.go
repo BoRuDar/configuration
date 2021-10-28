@@ -30,17 +30,21 @@ func NewFlagProvider(ptrToCfg interface{}, opts ...FlagProviderOption) flagProvi
 	return fp
 }
 
+// FlagSet is the part of flag.FlagSet that NewFlagProvider uses
 type FlagSet interface {
 	Parse([]string) error
 	String(string, string, string) *string
 }
 
+// WithFlagSet allows the flag.FlagSet to be provided to NewFlagProvider.
+// This allows compatability with other flag parsing utilities.
 func WithFlagSet(s FlagSet) FlagProviderOption {
 	return func(fp *flagProvider) {
 		fp.flagSet = s
 	}
 }
 
+// WithParseError captures the return value from flag.Parse()
 func WithParseError(ep *error) FlagProviderOption {
 	return func(fp *flagProvider) {
 		fp.parseError = ep
