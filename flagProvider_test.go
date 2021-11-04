@@ -199,3 +199,18 @@ func TestFlagProvider_WithErrorHandlerAndErr(t *testing.T) {
 		t.Fatal("error must be called 3 times")
 	}
 }
+
+func TestFlagProvider_Error(t *testing.T) {
+	type testStruct struct {
+		Name string `flag:"flag_name5||||"`
+	}
+	testObj := testStruct{}
+	os.Args = []string{""}
+
+	eh := func(err error) {
+		if err != nil && err.Error() != ErrNotAPointer.Error() {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	}
+	_ = NewFlagProvider(testObj, WithErrorHandler(eh))
+}
