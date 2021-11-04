@@ -2,7 +2,6 @@
 package configuration
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"reflect"
@@ -17,19 +16,21 @@ func New(
 		configPtr: cfgPtr,
 		providers: providers,
 		loggerFn:  log.Printf,
-		onFailToSetField: func(err error) {
-			log.Fatal(err)
+		onErrorFn: func(err error) {
+			if err != nil {
+				log.Fatal(err)
+			}
 		},
 		loggingEnabled: false,
 	}
 }
 
 type configurator struct {
-	configPtr        interface{}
-	providers        []Provider
-	onFailToSetField func(err error)
-	loggerFn         func(format string, v ...interface{})
-	loggingEnabled   bool
+	configPtr      interface{}
+	providers      []Provider
+	onErrorFn      func(err error)
+	loggerFn       func(format string, v ...interface{})
+	loggingEnabled bool
 }
 
 // InitValues sets values into struct field using given set of providers
@@ -40,7 +41,13 @@ func (c configurator) InitValues() error {
 	}
 
 	if len(c.providers) == 0 {
-		return errors.New("providers not found")
+		return ErrNoProviders
+	}
+
+	for _, p := range c.providers {
+		if err := p.Init(c.configPtr); err != nil {
+			return fmt.Errorf("cannot init [%s] provider: %v", "TODO", err)
+		}
 	}
 
 	c.fillUp(c.configPtr)
@@ -61,7 +68,7 @@ func (c *configurator) EnableLogging(enable bool) {
 
 // SetOnFailFn sets function which will be called when no value set into the field
 func (c *configurator) SetOnFailFn(fn func(error)) {
-	c.onFailToSetField = fn
+	c.onErrorFn = fn
 }
 
 func (c configurator) fillUp(i interface{}, parentPath ...string) {
@@ -108,7 +115,7 @@ func (c configurator) applyProviders(field reflect.StructField, v reflect.Value,
 		c.logf("configurator: %v", err)
 	}
 
-	c.onFailToSetField(fmt.Errorf("configurator: field [%s] with tags [%v] cannot be set", field.Name, field.Tag))
+	c.onErrorFn(fmt.Errorf("configurator: field [%s] with tags [%v] cannot be set", field.Name, field.Tag))
 }
 
 func (c configurator) logf(format string, v ...interface{}) {

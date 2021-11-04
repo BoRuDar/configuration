@@ -13,7 +13,7 @@ const flagSeparator = "|"
 type FlagProviderOption func(*flagProvider)
 
 // NewFlagProvider creates a new provider to fetch data from flags like: --flag_name some_value
-func NewFlagProvider(ptrToCfg interface{}, opts ...FlagProviderOption) flagProvider {
+func NewFlagProvider(opts ...FlagProviderOption) flagProvider {
 	fp := flagProvider{
 		flagsValues:  map[string]func() *string{},
 		flags:        map[string]*flagData{},
@@ -25,11 +25,15 @@ func NewFlagProvider(ptrToCfg interface{}, opts ...FlagProviderOption) flagProvi
 		f(&fp)
 	}
 
-	fp.errorHandler(fp.initFlagProvider(ptrToCfg))
-
-	fp.errorHandler(fp.flagSet.Parse(os.Args[1:]))
-
 	return fp
+}
+
+func (fp flagProvider) Init(ptr interface{}) error {
+	if err := fp.initFlagProvider(ptr); err != nil {
+		return err
+	}
+
+	return fp.flagSet.Parse(os.Args[1:])
 }
 
 // FlagSet is the part of flag.FlagSet that NewFlagProvider uses

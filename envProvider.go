@@ -14,6 +14,10 @@ func NewEnvProvider() envProvider {
 
 type envProvider struct{}
 
+func (envProvider) Init(_ interface{}) error {
+	return nil
+}
+
 func (envProvider) Provide(field reflect.StructField, v reflect.Value, _ ...string) error {
 	key := getEnvTag(field)
 	if len(key) == 0 {

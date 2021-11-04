@@ -12,6 +12,10 @@ func NewDefaultProvider() defaultProvider {
 
 type defaultProvider struct{}
 
+func (defaultProvider) Init(_ interface{}) error {
+	return nil
+}
+
 func (defaultProvider) Provide(field reflect.StructField, v reflect.Value, _ ...string) error {
 	valStr := getDefaultTag(field)
 	if len(valStr) == 0 {

@@ -1,4 +1,3 @@
-APP_NAME="PlayersProfile"
 COVERAGE_FILE="coverage.out"
 
 test:

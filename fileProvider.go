@@ -12,31 +12,33 @@ import (
 )
 
 // NewFileProvider creates new provider which read values from files (json, yaml)
-func NewFileProvider(fileName string) (fp fileProvider, err error) {
-	file, err := os.Open(fileName)
+func NewFileProvider(fileName string) (fp *fileProvider) {
+	return &fileProvider{fileName: fileName}
+}
+
+type fileProvider struct {
+	fileName string
+	fileData interface{}
+}
+
+func (fp *fileProvider) Init(_ interface{}) error {
+	file, err := os.Open(fp.fileName)
 	if err != nil {
-		return fp, err
+		return err
 	}
 	defer file.Close()
 
 	b, err := ioutil.ReadAll(file)
 	if err != nil {
-		return fp, err
+		return err
 	}
 
-	fn, err := decodeFunc(fileName)
+	fn, err := decodeFunc(fp.fileName)
 	if err != nil {
-		return fp, err
+		return err
 	}
 
-	if err := fn(b, &fp.fileData); err != nil {
-		return fp, err
-	}
-	return
-}
-
-type fileProvider struct {
-	fileData interface{}
+	return fn(b, &fp.fileData)
 }
 
 func (fp fileProvider) Provide(field reflect.StructField, v reflect.Value, path ...string) error {

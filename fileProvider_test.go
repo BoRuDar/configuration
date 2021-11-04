@@ -29,11 +29,6 @@ func TestFileProvider_yml(t *testing.T) {
 		Timeout: time.Millisecond * 100,
 	}
 
-	provider, err := NewFileProvider("./testdata/input.yml")
-	if err != nil {
-		t.Fatalf("unexpected err: %v", err)
-	}
-
 	var ( // field: Inside.Beta
 		fieldType = reflect.TypeOf(&testObj).Elem().Field(1).Type.Field(0)
 		fieldVal  = reflect.ValueOf(&testObj).Elem().Field(1).Field(0)
@@ -44,6 +39,11 @@ func TestFileProvider_yml(t *testing.T) {
 		fieldVal2  = reflect.ValueOf(&testObj).Elem().Field(2)
 		fieldPath2 = []string{"Timeout"}
 	)
+
+	provider := NewFileProvider("./testdata/input.yml")
+	if err := provider.Init(&testObj); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	err2 := provider.Provide(fieldType, fieldVal, fieldPath...)
 	err3 := provider.Provide(fieldType2, fieldVal2, fieldPath2...)
@@ -59,18 +59,22 @@ func TestFileProvider_json(t *testing.T) {
 		Timeout: time.Millisecond * 101,
 	}
 
-	provider, err := NewFileProvider("./testdata/input.json")
-	if err != nil {
-		t.Fatalf("unexpected err: %v", err)
-	}
-
 	fieldType := reflect.TypeOf(&testObj).Elem().Field(2)
 	fieldVal := reflect.ValueOf(&testObj).Elem().Field(2)
 	fieldPath := []string{"Timeout"}
 
-	err1 := provider.Provide(fieldType, fieldVal, fieldPath...)
+	p := NewFileProvider("./testdata/input.json")
+	if err := p.Init(&testObj); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
-	assert.Nil(t, err1, "cannot set value")
+	if err := p.Init(&testObj); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if err := p.Provide(fieldType, fieldVal, fieldPath...); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
 	assert.Equal(t, expected, testObj)
 }
 

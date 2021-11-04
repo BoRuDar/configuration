@@ -13,6 +13,9 @@ func TestConfigurator(t *testing.T) {
 	// setting command line flag
 	os.Args = []string{"smth", "-name=flag_value"}
 
+	// test file
+	fileName := "./testdata/input.yml"
+
 	// setting env variable
 	removeEnvKey, err := setEnv("AGE_ENV", "45")
 	if err != nil {
@@ -41,18 +44,13 @@ func TestConfigurator(t *testing.T) {
 		}
 	}{}
 
-	fileProvider, err := NewFileProvider("./testdata/input.yml")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
 	configurator := New(
 		&cfg,
-		// order of execution will be kept:
-		NewFlagProvider(&cfg), // 1st
-		NewEnvProvider(),      // 2nd
-		fileProvider,          // 3rd
-		NewDefaultProvider(),  // 4th
+		// order of execution will be preserved:
+		NewFlagProvider(),         // 1st
+		NewEnvProvider(),          // 2nd
+		NewFileProvider(fileName), // 3rd
+		NewDefaultProvider(),      // 4th
 	)
 
 	if err := configurator.InitValues(); err != nil {
@@ -118,7 +116,7 @@ func TestEmbeddedFlags(t *testing.T) {
 	os.Args = []string{"smth", "-addr=addr_value"}
 
 	var cfg Config
-	if err := New(&cfg, NewFlagProvider(&cfg)).InitValues(); err != nil {
+	if err := New(&cfg, NewFlagProvider()).InitValues(); err != nil {
 		t.Fatal("unexpected err: ", err)
 	}
 
@@ -164,7 +162,7 @@ func TestFallBackToDefault(t *testing.T) {
 	}{}
 
 	c := New(&cfg,
-		NewFlagProvider(&cfg),
+		NewFlagProvider(),
 		NewDefaultProvider(),
 	)
 	c.EnableLogging(true)
@@ -182,7 +180,7 @@ func TestSetOnFailFn(t *testing.T) {
 			Name string `default:"test_name"`
 		}{}
 		onFailFn = func(err error) {
-			if err.Error() != "configurator: field [Name] with tags [default:\"test_name\"] cannot be set" {
+			if err != nil && err.Error() != "configurator: field [Name] with tags [default:\"test_name\"] cannot be set" {
 				t.Fatalf("unexpected error: %v", err)
 			}
 		}
@@ -190,9 +188,9 @@ func TestSetOnFailFn(t *testing.T) {
 
 	c := New(
 		&cfg,
-		NewEnvProvider(),
+		NewFlagProvider(),
 	)
-	c.SetOnFailFn(onFailFn)
+	c.SetOnFailFn(onFailFn) // TODO: share between providers
 
 	if err := c.InitValues(); err != nil {
 		t.Fatal("unexpected err: ", err)
