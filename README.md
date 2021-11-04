@@ -141,6 +141,9 @@ Flags:
 	-first_name		"Description (default: default_value)"
 ``` 
 And program execution will be terminated.
+#### Options for _NewFlagProvider_
+* WithFlagSet - set a custom FlagSet
+* WithErrorHandler - to catch and handle errors from the init phase (before actually getting data from flags)
 
 ### File provider
 Doesn't require any specific tags. JSON and YAML formats of files are supported.
