@@ -12,28 +12,20 @@ import (
 func New(
 	cfgPtr interface{}, // must be a pointer to a struct
 	providers ...Provider, // providers will be executed in order of their declaration
-) (configurator, error) {
-	if len(providers) == 0 {
-		return configurator{}, errors.New("providers not found")
-	}
-
-	if reflect.TypeOf(cfgPtr).Kind() != reflect.Ptr {
-		return configurator{}, errors.New("not a pointer to the struct")
-	}
-
+) configurator {
 	return configurator{
-		config:    cfgPtr,
+		configPtr: cfgPtr,
 		providers: providers,
 		loggerFn:  log.Printf,
 		onFailToSetField: func(err error) {
 			log.Fatal(err)
 		},
 		loggingEnabled: false,
-	}, nil
+	}
 }
 
 type configurator struct {
-	config           interface{}
+	configPtr        interface{}
 	providers        []Provider
 	onFailToSetField func(err error)
 	loggerFn         func(format string, v ...interface{})
@@ -42,8 +34,17 @@ type configurator struct {
 
 // InitValues sets values into struct field using given set of providers
 // respecting their order: first defined -> first executed
-func (c configurator) InitValues() {
-	c.fillUp(c.config)
+func (c configurator) InitValues() error {
+	if reflect.TypeOf(c.configPtr).Kind() != reflect.Ptr {
+		return ErrNotAPointer
+	}
+
+	if len(c.providers) == 0 {
+		return errors.New("providers not found")
+	}
+
+	c.fillUp(c.configPtr)
+	return nil
 }
 
 // SetLogger changes logger
@@ -52,7 +53,7 @@ func (c *configurator) SetLogger(l func(format string, v ...interface{})) {
 	return
 }
 
-// SetLogger changes logger
+// EnableLogging changes logger
 func (c *configurator) EnableLogging(enable bool) {
 	c.loggingEnabled = enable
 	return

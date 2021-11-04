@@ -46,18 +46,18 @@ func TestConfigurator(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	configurator, err := New(&cfg,
+	configurator := New(
+		&cfg,
 		// order of execution will be kept:
 		NewFlagProvider(&cfg), // 1st
 		NewEnvProvider(),      // 2nd
 		fileProvider,          // 3rd
 		NewDefaultProvider(),  // 4th
 	)
-	if err != nil {
+
+	if err := configurator.InitValues(); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-
-	configurator.InitValues()
 
 	assert.Equal(t, "flag_value", cfg.Name)
 	assert.Equal(t, "defaultLastName", cfg.LastName)
@@ -98,7 +98,7 @@ func TestConfigurator_Errors(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			_, err := New(test.input, test.providers...)
+			err := New(test.input, test.providers...).InitValues()
 			if err == nil {
 				t.Fatal("expected error but got nil")
 			}
@@ -118,12 +118,9 @@ func TestEmbeddedFlags(t *testing.T) {
 	os.Args = []string{"smth", "-addr=addr_value"}
 
 	var cfg Config
-	c, err := New(&cfg, NewFlagProvider(&cfg))
-	if err != nil {
+	if err := New(&cfg, NewFlagProvider(&cfg)).InitValues(); err != nil {
 		t.Fatal("unexpected err: ", err)
 	}
-
-	c.InitValues()
 
 	assert.NotNil(t, cfg.Client)
 	assert.Equal(t, cfg.Client.ServerAddress, "addr_value")
@@ -144,18 +141,17 @@ func TestSetLogger(t *testing.T) {
 		}
 	)
 
-	c, err := New(
+	c := New(
 		&cfg,
 		NewEnvProvider(),
 		NewDefaultProvider(),
 	)
-	if err != nil {
-		t.Fatal("unexpected err: ", err)
-	}
-
 	c.SetLogger(logFn)
 	c.EnableLogging(true)
-	c.InitValues()
+
+	if err := c.InitValues(); err != nil {
+		t.Fatal("unexpected err: ", err)
+	}
 
 	assert.Equal(t, cfg.Name, "test_name")
 	assert.Equal(t, expectedLogs, logs)
@@ -167,16 +163,15 @@ func TestFallBackToDefault(t *testing.T) {
 		NameFlag string `flag:"name_flag||Some description"   default:"default_val"`
 	}{}
 
-	configurator, err := New(&cfg,
+	c := New(&cfg,
 		NewFlagProvider(&cfg),
 		NewDefaultProvider(),
 	)
-	if err != nil {
+	c.EnableLogging(true)
+
+	if err := c.InitValues(); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-
-	configurator.EnableLogging(true)
-	configurator.InitValues()
 
 	assert.Equal(t, "default_val", cfg.NameFlag)
 }
@@ -193,14 +188,13 @@ func TestSetOnFailFn(t *testing.T) {
 		}
 	)
 
-	c, err := New(
+	c := New(
 		&cfg,
 		NewEnvProvider(),
 	)
-	if err != nil {
+	c.SetOnFailFn(onFailFn)
+
+	if err := c.InitValues(); err != nil {
 		t.Fatal("unexpected err: ", err)
 	}
-
-	c.SetOnFailFn(onFailFn)
-	c.InitValues()
 }
