@@ -180,3 +180,27 @@ func TestFallBackToDefault(t *testing.T) {
 
 	assert.Equal(t, "default_val", cfg.NameFlag)
 }
+
+func TestSetOnFailFn(t *testing.T) {
+	var (
+		cfg = struct {
+			Name string `default:"test_name"`
+		}{}
+		onFailFn = func(err error) {
+			if err.Error() != "configurator: field [Name] with tags [default:\"test_name\"] cannot be set" {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		}
+	)
+
+	c, err := New(
+		&cfg,
+		NewEnvProvider(),
+	)
+	if err != nil {
+		t.Fatal("unexpected err: ", err)
+	}
+
+	c.SetOnFailFn(onFailFn)
+	c.InitValues()
+}

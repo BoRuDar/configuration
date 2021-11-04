@@ -3,27 +3,61 @@ package configuration
 import (
 	"flag"
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 )
 
 const flagSeparator = "|"
 
-// NewFlagProvider creates a new provider to fetch data from flags like: --flag_name some_value
-func NewFlagProvider(ptrToCfg interface{}) flagProvider {
-	fp := flagProvider{
-		flagsValues: map[string]func() *string{},
-		flags:       map[string]*flagData{},
-	}
-	fp.initFlagProvider(ptrToCfg)
+type FlagProviderOption func(*flagProvider)
 
-	flag.Parse()
+// NewFlagProvider creates a new provider to fetch data from flags like: --flag_name some_value
+func NewFlagProvider(ptrToCfg interface{}, opts ...FlagProviderOption) flagProvider {
+	fp := flagProvider{
+		flagsValues:  map[string]func() *string{},
+		flags:        map[string]*flagData{},
+		flagSet:      flag.CommandLine,
+		errorHandler: func(err error) {},
+	}
+
+	for _, f := range opts {
+		f(&fp)
+	}
+
+	fp.errorHandler(fp.initFlagProvider(ptrToCfg))
+
+	fp.errorHandler(fp.flagSet.Parse(os.Args[1:]))
+
 	return fp
 }
 
+// FlagSet is the part of flag.FlagSet that NewFlagProvider uses
+type FlagSet interface {
+	Parse([]string) error
+	String(string, string, string) *string
+}
+
+// WithFlagSet allows the flag.FlagSet to be provided to NewFlagProvider.
+// This allows compatability with other flag parsing utilities.
+func WithFlagSet(s FlagSet) FlagProviderOption {
+	return func(fp *flagProvider) {
+		fp.flagSet = s
+	}
+}
+
+// WithErrorHandler captures errors from fp.initFlagProvider and fp.flagSet.Parse
+func WithErrorHandler(fn func(err error)) FlagProviderOption {
+	return func(fp *flagProvider) {
+		fp.errorHandler = fn
+	}
+}
+
 type flagProvider struct {
-	flagsValues map[string]func() *string
-	flags       map[string]*flagData
+	flagsValues  map[string]func() *string
+	flags        map[string]*flagData
+	flagSet      FlagSet
+	errorHandler func(err error)
 }
 
 type flagData struct {
@@ -41,7 +75,7 @@ func (fp flagProvider) initFlagProvider(i interface{}) error {
 		t = t.Elem()
 		v = v.Elem()
 	default:
-		return fmt.Errorf("not a pointer to a struct")
+		return ErrNotAPointer
 	}
 
 	for i := 0; i < t.NumField(); i++ {
@@ -62,7 +96,7 @@ func (fp flagProvider) initFlagProvider(i interface{}) error {
 			continue
 		}
 
-		fp.setFlagCallbacks(tField)
+		fp.errorHandler(fp.setFlagCallbacks(tField))
 	}
 	return nil
 }
@@ -78,7 +112,7 @@ func (fp flagProvider) setFlagCallbacks(field reflect.StructField) error {
 	}
 	fp.flags[fd.key] = fd
 
-	valStr := flag.String(fd.key, fd.defaultVal, fd.usage)
+	valStr := fp.flagSet.String(fd.key, fd.defaultVal, fd.usage)
 	fp.flagsValues[fd.key] = func() *string {
 		return valStr
 	}
