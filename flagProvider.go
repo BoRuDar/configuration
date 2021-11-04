@@ -14,19 +14,21 @@ type FlagProviderOption func(*flagProvider)
 
 // NewFlagProvider creates a new provider to fetch data from flags like: --flag_name some_value
 func NewFlagProvider(ptrToCfg interface{}, opts ...FlagProviderOption) flagProvider {
-	var parseError error
 	fp := flagProvider{
-		flagsValues: map[string]func() *string{},
-		flags:       map[string]*flagData{},
-		flagSet:     flag.NewFlagSet("", flag.ContinueOnError),
-		parseError:  &parseError,
+		flagsValues:  map[string]func() *string{},
+		flags:        map[string]*flagData{},
+		flagSet:      flag.CommandLine,
+		errorHandler: func(err error) {},
 	}
+
 	for _, f := range opts {
 		f(&fp)
 	}
-	fp.initFlagProvider(ptrToCfg)
 
-	*fp.parseError = fp.flagSet.Parse(os.Args[1:])
+	fp.errorHandler(fp.initFlagProvider(ptrToCfg))
+
+	fp.errorHandler(fp.flagSet.Parse(os.Args[1:]))
+
 	return fp
 }
 
@@ -44,18 +46,18 @@ func WithFlagSet(s FlagSet) FlagProviderOption {
 	}
 }
 
-// WithParseError captures the return value from flag.Parse()
-func WithParseError(ep *error) FlagProviderOption {
+// WithErrorHandler captures errors from fp.initFlagProvider and fp.flagSet.Parse
+func WithErrorHandler(fn func(err error)) FlagProviderOption {
 	return func(fp *flagProvider) {
-		fp.parseError = ep
+		fp.errorHandler = fn
 	}
 }
 
 type flagProvider struct {
-	flagsValues map[string]func() *string
-	flags       map[string]*flagData
-	flagSet     FlagSet
-	parseError  *error
+	flagsValues  map[string]func() *string
+	flags        map[string]*flagData
+	flagSet      FlagSet
+	errorHandler func(err error)
 }
 
 type flagData struct {
@@ -94,7 +96,7 @@ func (fp flagProvider) initFlagProvider(i interface{}) error {
 			continue
 		}
 
-		fp.setFlagCallbacks(tField)
+		fp.errorHandler(fp.setFlagCallbacks(tField))
 	}
 	return nil
 }
