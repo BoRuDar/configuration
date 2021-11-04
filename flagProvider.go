@@ -3,27 +3,59 @@ package configuration
 import (
 	"flag"
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 )
 
 const flagSeparator = "|"
 
+type FlagProviderOption func(*flagProvider)
+
 // NewFlagProvider creates a new provider to fetch data from flags like: --flag_name some_value
-func NewFlagProvider(ptrToCfg interface{}) flagProvider {
+func NewFlagProvider(ptrToCfg interface{}, opts ...FlagProviderOption) flagProvider {
+	var parseError error
 	fp := flagProvider{
 		flagsValues: map[string]func() *string{},
 		flags:       map[string]*flagData{},
+		flagSet:     flag.NewFlagSet("", flag.ContinueOnError),
+		parseError:  &parseError,
+	}
+	for _, f := range opts {
+		f(&fp)
 	}
 	fp.initFlagProvider(ptrToCfg)
 
-	flag.Parse()
+	*fp.parseError = fp.flagSet.Parse(os.Args[1:])
 	return fp
+}
+
+// FlagSet is the part of flag.FlagSet that NewFlagProvider uses
+type FlagSet interface {
+	Parse([]string) error
+	String(string, string, string) *string
+}
+
+// WithFlagSet allows the flag.FlagSet to be provided to NewFlagProvider.
+// This allows compatability with other flag parsing utilities.
+func WithFlagSet(s FlagSet) FlagProviderOption {
+	return func(fp *flagProvider) {
+		fp.flagSet = s
+	}
+}
+
+// WithParseError captures the return value from flag.Parse()
+func WithParseError(ep *error) FlagProviderOption {
+	return func(fp *flagProvider) {
+		fp.parseError = ep
+	}
 }
 
 type flagProvider struct {
 	flagsValues map[string]func() *string
 	flags       map[string]*flagData
+	flagSet     FlagSet
+	parseError  *error
 }
 
 type flagData struct {
@@ -78,7 +110,7 @@ func (fp flagProvider) setFlagCallbacks(field reflect.StructField) error {
 	}
 	fp.flags[fd.key] = fd
 
-	valStr := flag.String(fd.key, fd.defaultVal, fd.usage)
+	valStr := fp.flagSet.String(fd.key, fd.defaultVal, fd.usage)
 	fp.flagsValues[fd.key] = func() *string {
 		return valStr
 	}
