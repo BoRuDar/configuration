@@ -143,9 +143,10 @@ func TestSetLogger(t *testing.T) {
 		&cfg,
 		NewEnvProvider(),
 		NewDefaultProvider(),
+	).SetOptions(
+		LoggerOpt(logFn),
+		EnableLoggingOpt(true),
 	)
-	c.SetLogger(logFn)
-	c.EnableLogging(true)
 
 	if err := c.InitValues(); err != nil {
 		t.Fatal("unexpected err: ", err)
@@ -164,8 +165,7 @@ func TestFallBackToDefault(t *testing.T) {
 	c := New(&cfg,
 		NewFlagProvider(),
 		NewDefaultProvider(),
-	)
-	c.EnableLogging(true)
+	).SetOptions(EnableLoggingOpt(true))
 
 	if err := c.InitValues(); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -189,8 +189,7 @@ func TestSetOnFailFn(t *testing.T) {
 	c := New(
 		&cfg,
 		NewFlagProvider(),
-	)
-	c.SetOnFailFn(onFailFn) // TODO: share between providers
+	).SetOptions(OnFailFnOpt(onFailFn)) // TODO: share OnFailFnOpt between providers?
 
 	if err := c.InitValues(); err != nil {
 		t.Fatal("unexpected err: ", err)

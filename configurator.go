@@ -7,12 +7,12 @@ import (
 	"reflect"
 )
 
-// New creates a new instance of the configurator.
+// New creates a new instance of the Configurator.
 func New(
 	cfgPtr interface{}, // must be a pointer to a struct
 	providers ...Provider, // providers will be executed in order of their declaration
-) configurator {
-	return configurator{
+) *Configurator {
+	return &Configurator{
 		configPtr: cfgPtr,
 		providers: providers,
 		loggerFn:  log.Printf,
@@ -25,7 +25,7 @@ func New(
 	}
 }
 
-type configurator struct {
+type Configurator struct {
 	configPtr      interface{}
 	providers      []Provider
 	onErrorFn      func(err error)
@@ -33,9 +33,16 @@ type configurator struct {
 	loggingEnabled bool
 }
 
+func (c *Configurator) SetOptions(options ...ConfiguratorOption) *Configurator {
+	for _, o := range options {
+		o(c)
+	}
+	return c
+}
+
 // InitValues sets values into struct field using given set of providers
 // respecting their order: first defined -> first executed
-func (c configurator) InitValues() error {
+func (c Configurator) InitValues() error {
 	if reflect.TypeOf(c.configPtr).Kind() != reflect.Ptr {
 		return ErrNotAPointer
 	}
@@ -54,24 +61,7 @@ func (c configurator) InitValues() error {
 	return nil
 }
 
-// SetLogger changes logger
-func (c *configurator) SetLogger(l func(format string, v ...interface{})) {
-	c.loggerFn = l
-	return
-}
-
-// EnableLogging changes logger
-func (c *configurator) EnableLogging(enable bool) {
-	c.loggingEnabled = enable
-	return
-}
-
-// SetOnFailFn sets function which will be called when no value set into the field
-func (c *configurator) SetOnFailFn(fn func(error)) {
-	c.onErrorFn = fn
-}
-
-func (c configurator) fillUp(i interface{}, parentPath ...string) {
+func (c Configurator) fillUp(i interface{}, parentPath ...string) {
 	var (
 		t = reflect.TypeOf(i)
 		v = reflect.ValueOf(i)
@@ -104,7 +94,7 @@ func (c configurator) fillUp(i interface{}, parentPath ...string) {
 	}
 }
 
-func (c configurator) applyProviders(field reflect.StructField, v reflect.Value, currentPath []string) {
+func (c Configurator) applyProviders(field reflect.StructField, v reflect.Value, currentPath []string) {
 	c.logf("configurator: current path: %v", currentPath)
 
 	for _, provider := range c.providers {
@@ -118,7 +108,7 @@ func (c configurator) applyProviders(field reflect.StructField, v reflect.Value,
 	c.onErrorFn(fmt.Errorf("configurator: field [%s] with tags [%v] cannot be set", field.Name, field.Tag))
 }
 
-func (c configurator) logf(format string, v ...interface{}) {
+func (c Configurator) logf(format string, v ...interface{}) {
 	if c.loggingEnabled {
 		c.loggerFn(format, v...)
 	}
