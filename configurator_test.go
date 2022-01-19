@@ -1,7 +1,6 @@
 package configuration
 
 import (
-	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -27,7 +26,7 @@ func TestConfigurator(t *testing.T) {
 	cfg := struct {
 		Name     string `flag:"name"`
 		LastName string `default:"defaultLastName"`
-		Age      byte   `env:"AGE_ENV"`
+		Age      byte   `env:"AGE_ENV"    default:"-1"`
 		BoolPtr  *bool  `default:"false"`
 
 		ObjPtr *struct {
@@ -37,10 +36,11 @@ func TestConfigurator(t *testing.T) {
 		}
 
 		Obj struct {
-			IntPtr   *int16   `default:"123"`
-			NameYML  int      `default:"24"`
-			StrSlice []string `default:"one;two"`
-			IntSlice []int64  `default:"3; 4"`
+			IntPtr     *int16   `default:"123"`
+			NameYML    int      `default:"24"`
+			StrSlice   []string `default:"one;two"`
+			IntSlice   []int64  `default:"3; 4"`
+			unexported string   `xml:"ignored"`
 		}
 	}{}
 
@@ -124,38 +124,6 @@ func TestEmbeddedFlags(t *testing.T) {
 	assert.Equal(t, cfg.Client.ServerAddress, "addr_value")
 }
 
-func TestSetLogger(t *testing.T) {
-	var (
-		cfg = struct {
-			Name string `default:"test_name"`
-		}{}
-		logs  []string // collects log output into slice
-		logFn = func(format string, v ...interface{}) {
-			logs = append(logs, fmt.Sprintf(format, v...))
-		}
-		expectedLogs = []string{
-			"configurator: current path: [Name]",
-			"configurator: envProvider: key is empty",
-		}
-	)
-
-	c := New(
-		&cfg,
-		NewEnvProvider(),
-		NewDefaultProvider(),
-	).SetOptions(
-		LoggerOpt(logFn),
-		EnableLoggingOpt(true),
-	)
-
-	if err := c.InitValues(); err != nil {
-		t.Fatal("unexpected err: ", err)
-	}
-
-	assert.Equal(t, cfg.Name, "test_name")
-	assert.Equal(t, expectedLogs, logs)
-}
-
 func TestFallBackToDefault(t *testing.T) {
 	// defining a struct
 	cfg := struct {
@@ -165,7 +133,7 @@ func TestFallBackToDefault(t *testing.T) {
 	c := New(&cfg,
 		NewFlagProvider(),
 		NewDefaultProvider(),
-	).SetOptions(EnableLoggingOpt(true))
+	)
 
 	if err := c.InitValues(); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -175,21 +143,22 @@ func TestFallBackToDefault(t *testing.T) {
 }
 
 func TestSetOnFailFn(t *testing.T) {
-	var (
-		cfg = struct {
-			Name string `default:"test_name"`
-		}{}
-		onFailFn = func(err error) {
-			if err != nil && err.Error() != "configurator: field [Name] with tags [default:\"test_name\"] cannot be set" {
-				t.Fatalf("unexpected error: %v", err)
-			}
+	cfg := struct {
+		Name string `default:"test_name"`
+	}{}
+	onFailFn := func(err error) {
+		if err != nil && err.Error() != "configurator: field [Name] with tags [default:\"test_name\"] cannot be set" {
+			t.Fatalf("unexpected error: %v", err)
 		}
-	)
+	}
 
 	c := New(
 		&cfg,
 		NewFlagProvider(),
-	).SetOptions(OnFailFnOpt(onFailFn)) // TODO: share OnFailFnOpt between providers?
+	).
+		SetOptions(
+			OnFailFnOpt(onFailFn),
+		)
 
 	if err := c.InitValues(); err != nil {
 		t.Fatal("unexpected err: ", err)
@@ -226,4 +195,9 @@ func TestProviderName(t *testing.T) {
 			assert.Equal(t, test.expectedName, test.provider.Name())
 		})
 	}
+}
+
+func TestConfigurator_NameCollision(t *testing.T) {
+	err := New(&struct{}{}, NewDefaultProvider(), NewDefaultProvider()).InitValues()
+	assert.Equal(t, ErrProviderNameCollision, err)
 }

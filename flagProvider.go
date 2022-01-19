@@ -35,12 +35,6 @@ func (flagProvider) Name() string {
 }
 
 func (fp flagProvider) Init(ptr interface{}) (err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("got panic: %v", r)
-		}
-	}()
-
 	if err := fp.initFlagProvider(ptr); err != nil {
 		return err
 	}
@@ -108,7 +102,7 @@ func (fp flagProvider) initFlagProvider(i interface{}) error {
 }
 
 func (fp flagProvider) setFlagCallbacks(field reflect.StructField) error {
-	fd, err := getFlagData(field)
+	fd, err := fp.getFlagData(field)
 	if err != nil {
 		return err
 	}
@@ -126,7 +120,7 @@ func (fp flagProvider) setFlagCallbacks(field reflect.StructField) error {
 }
 
 func (fp flagProvider) Provide(field reflect.StructField, v reflect.Value, _ ...string) error {
-	fd, err := getFlagData(field)
+	fd, err := fp.getFlagData(field)
 	if err != nil {
 		return err
 	}
@@ -141,8 +135,8 @@ func (fp flagProvider) Provide(field reflect.StructField, v reflect.Value, _ ...
 	return SetField(field, v, *val)
 }
 
-func getFlagData(field reflect.StructField) (*flagData, error) {
-	key := getFlagTag(field)
+func (fp flagProvider) getFlagData(field reflect.StructField) (*flagData, error) {
+	key := field.Tag.Get("flag")
 	if len(key) == 0 {
 		return nil, ErrNoTag
 	}
@@ -155,15 +149,18 @@ func getFlagData(field reflect.StructField) (*flagData, error) {
 			defaultVal: strings.TrimSpace(flagInfo[1]),
 			usage:      flagInfo[2],
 		}, nil
+
 	case 2:
 		return &flagData{
 			key:        strings.TrimSpace(flagInfo[0]),
 			defaultVal: strings.TrimSpace(flagInfo[1]),
 		}, nil
+
 	case 1:
 		return &flagData{
 			key: strings.TrimSpace(flagInfo[0]),
 		}, nil
+
 	default:
 		return nil, fmt.Errorf("wrong flag definition [%s]", key)
 	}

@@ -22,8 +22,8 @@ func (defaultProvider) Init(_ interface{}) error {
 	return nil
 }
 
-func (defaultProvider) Provide(field reflect.StructField, v reflect.Value, _ ...string) error {
-	valStr := getDefaultTag(field)
+func (dp defaultProvider) Provide(field reflect.StructField, v reflect.Value, _ ...string) error {
+	valStr := field.Tag.Get("default")
 	if len(valStr) == 0 {
 		return fmt.Errorf("defaultProvider: %w", ErrEmptyValue)
 	}

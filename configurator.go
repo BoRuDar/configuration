@@ -13,9 +13,10 @@ func New(
 	providers ...Provider, // providers will be executed in order of their declaration
 ) *Configurator {
 	return &Configurator{
-		configPtr: cfgPtr,
-		providers: providers,
-		loggerFn:  log.Printf,
+		configPtr:      cfgPtr,
+		providers:      providers,
+		registeredTags: map[string]struct{}{},
+		loggerFn:       log.Printf,
 		onErrorFn: func(err error) {
 			if err != nil {
 				log.Fatal(err)
@@ -28,6 +29,7 @@ func New(
 type Configurator struct {
 	configPtr      interface{}
 	providers      []Provider
+	registeredTags map[string]struct{}
 	onErrorFn      func(err error)
 	loggerFn       func(format string, v ...interface{})
 	loggingEnabled bool
@@ -52,6 +54,11 @@ func (c Configurator) InitValues() error {
 	}
 
 	for _, p := range c.providers {
+		if _, ok := c.registeredTags[p.Name()]; ok {
+			return ErrProviderNameCollision
+		}
+		c.registeredTags[p.Name()] = struct{}{}
+
 		if err := p.Init(c.configPtr); err != nil {
 			return fmt.Errorf("cannot init [%s] provider: %v", p.Name(), err)
 		}
@@ -95,21 +102,16 @@ func (c Configurator) fillUp(i interface{}, parentPath ...string) {
 }
 
 func (c Configurator) applyProviders(field reflect.StructField, v reflect.Value, currentPath []string) {
-	c.logf("configurator: current path: %v", currentPath)
+	if !field.IsExported() {
+		return
+	}
 
 	for _, provider := range c.providers {
 		err := provider.Provide(field, v, currentPath...)
 		if err == nil {
 			return
 		}
-		c.logf("configurator: %v", err)
 	}
 
 	c.onErrorFn(fmt.Errorf("configurator: field [%s] with tags [%v] cannot be set", field.Name, field.Tag))
-}
-
-func (c Configurator) logf(format string, v ...interface{}) {
-	if c.loggingEnabled {
-		c.loggerFn(format, v...)
-	}
 }

@@ -136,7 +136,7 @@ func TestGetFlagData(t *testing.T) {
 		test := test
 		t.Run(name, func(t *testing.T) {
 			field := reflect.TypeOf(test.input).Field(0)
-			gotFlagData, err := getFlagData(field)
+			gotFlagData, err := NewFlagProvider().getFlagData(field)
 
 			assert.Equal(t, test.hasErr, err != nil)
 			assert.Equal(t, test.expected, gotFlagData)
@@ -167,16 +167,6 @@ func TestFlagProvider_CustomFlagSet(t *testing.T) {
 	}
 
 	assert.Equal(t, testValue, testObj.Name)
-}
-
-func TestFlagProvider_Panic(t *testing.T) {
-	testObj := struct {
-		s struct{}
-	}{}
-
-	err := NewFlagProvider().Init(&testObj)
-	assert.Error(t, err)
-	assert.Equal(t, "got panic: reflect.Value.Interface: cannot return value obtained from unexported field or method", err.Error())
 }
 
 func TestFlagProvider_ErrNotAPointer(t *testing.T) {

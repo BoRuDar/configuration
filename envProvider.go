@@ -24,8 +24,8 @@ func (envProvider) Init(_ interface{}) error {
 	return nil
 }
 
-func (envProvider) Provide(field reflect.StructField, v reflect.Value, _ ...string) error {
-	key := getEnvTag(field)
+func (ep envProvider) Provide(field reflect.StructField, v reflect.Value, _ ...string) error {
+	key := field.Tag.Get("env")
 	if len(key) == 0 {
 		// field doesn't have a proper tag
 		return fmt.Errorf("envProvider: key is empty")
