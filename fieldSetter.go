@@ -46,13 +46,13 @@ func setValue(t reflect.Type, v reflect.Value, val string) (err error) {
 		err = setSlice(t, v, val)
 
 	default:
-		err = fmt.Errorf("unsupported type: %v", v.Kind().String())
+		err = fmt.Errorf("setValue: unsupported type: %v", v.Kind().String())
 	}
 	return
 }
 
 func setInt64(v reflect.Value, val string) {
-	// special case for parsing human readable input for time.Duration
+	// special case for parsing human-readable input for time.Duration
 	if _, ok := v.Interface().(time.Duration); ok {
 		d, _ := time.ParseDuration(val)
 		v.SetInt(int64(d))
@@ -65,45 +65,50 @@ func setInt64(v reflect.Value, val string) {
 }
 
 func setSlice(t reflect.Type, v reflect.Value, val string) error {
-	var items []string
-	for _, item := range strings.Split(val, sliceSeparator) {
-		item = strings.TrimSpace(item)
-		if len(item) > 0 {
-			items = append(items, item)
-		}
-	}
+	var (
+		slice reflect.Value
+		items = splitIntoSlice(val)
+		size  = len(items)
+	)
 
-	size := len(items)
 	if size == 0 {
 		return fmt.Errorf("setSlice: got emtpy slice")
 	}
-	slice := reflect.MakeSlice(t, size, size)
 
 	switch t.Elem().Kind() {
 	case reflect.String:
+		slice = reflect.MakeSlice(t, size, size)
 		for i := 0; i < size; i++ {
 			slice.Index(i).SetString(items[i])
 		}
+
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		slice = reflect.MakeSlice(t, size, size)
 		for i := 0; i < size; i++ {
 			val, _ := strconv.ParseInt(items[i], 10, 64)
 			slice.Index(i).SetInt(val)
 		}
+
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		slice = reflect.MakeSlice(t, size, size)
 		for i := 0; i < size; i++ {
 			val, _ := strconv.ParseUint(items[i], 10, 64)
 			slice.Index(i).SetUint(val)
 		}
+
 	case reflect.Float32, reflect.Float64:
+		slice = reflect.MakeSlice(t, size, size)
 		for i := 0; i < size; i++ {
 			val, _ := strconv.ParseFloat(items[i], 64)
 			slice.Index(i).SetFloat(val)
 		}
 	case reflect.Bool:
+		slice = reflect.MakeSlice(t, size, size)
 		for i := 0; i < size; i++ {
 			val, _ := strconv.ParseBool(items[i])
 			slice.Index(i).SetBool(val)
 		}
+
 	default:
 		return fmt.Errorf("setSlice: unsupported type of slice item: %v", t.Elem().Kind().String())
 	}
@@ -187,4 +192,17 @@ func setPtrValue(t reflect.Type, v reflect.Value, val string) (err error) {
 		err = fmt.Errorf("setPtrValue: unsupported type: %v", t.Kind().String())
 	}
 	return
+}
+
+func splitIntoSlice(val string) []string {
+	var items []string
+
+	for _, item := range strings.Split(val, sliceSeparator) {
+		item = strings.TrimSpace(item)
+		if len(item) > 0 {
+			items = append(items, item)
+		}
+	}
+
+	return items
 }

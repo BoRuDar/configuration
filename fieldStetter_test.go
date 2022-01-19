@@ -367,3 +367,33 @@ func TestSetValue_BoolSlice(t *testing.T) {
 		t.Fatalf("\nexpected result: %+v \nbut got: %+v", expected, fieldVal.Interface())
 	}
 }
+
+func TestSetValue_EmptySlice(t *testing.T) {
+	var testStr []bool
+	fieldType := reflect.TypeOf(&testStr).Elem()
+	fieldVal := reflect.ValueOf(&testStr).Elem()
+	testValue := " "
+
+	err := setValue(fieldType, fieldVal, testValue)
+	assert.Error(t, err)
+	assert.Equal(t, "setSlice: got emtpy slice", err.Error())
+}
+
+func TestSetValue_Unsupported(t *testing.T) {
+	var testStr chan struct{}
+	fieldType := reflect.TypeOf(&testStr).Elem()
+	fieldVal := reflect.ValueOf(&testStr).Elem()
+	testValue := "true; false; "
+
+	err := setValue(fieldType, fieldVal, testValue)
+	assert.Error(t, err)
+	assert.Equal(t, "setValue: unsupported type: chan", err.Error())
+
+	err = setPtrValue(fieldType, fieldVal, testValue)
+	assert.Error(t, err)
+	assert.Equal(t, "setPtrValue: unsupported type: chan", err.Error())
+
+	err = setSlice(fieldType, fieldVal, testValue)
+	assert.Error(t, err)
+	assert.Equal(t, "setSlice: unsupported type of slice item: struct", err.Error())
+}
