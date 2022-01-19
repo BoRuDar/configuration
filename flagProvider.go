@@ -89,18 +89,14 @@ func (fp flagProvider) initFlagProvider(i interface{}) error {
 	for i := 0; i < t.NumField(); i++ {
 		tField := t.Field(i)
 		if tField.Type.Kind() == reflect.Struct {
-			if err := fp.initFlagProvider(v.Field(i).Addr().Interface()); err != nil {
-				return err
-			}
+			_ = fp.initFlagProvider(v.Field(i).Addr().Interface())
 			continue
 		}
 
 		if tField.Type.Kind() == reflect.Ptr && tField.Type.Elem().Kind() == reflect.Struct {
 			v.Field(i).Set(reflect.New(tField.Type.Elem()))
 
-			if err := fp.initFlagProvider(v.Field(i).Interface()); err != nil {
-				return err
-			}
+			_ = fp.initFlagProvider(v.Field(i).Interface())
 			continue
 		}
 

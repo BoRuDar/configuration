@@ -169,27 +169,14 @@ func TestFlagProvider_CustomFlagSet(t *testing.T) {
 	assert.Equal(t, testValue, testObj.Name)
 }
 
-func TestFlagProvider_WithErrorHandler(t *testing.T) {
-	type testStruct struct {
-		Name string `flag:"flag_name4||Description"`
-	}
-	testObj := testStruct{}
-	testValue := "flag_value"
-	os.Args = []string{"smth", "-flag_name4=flag_value"}
+func TestFlagProvider_Panic(t *testing.T) {
+	testObj := struct {
+		s struct{}
+	}{}
 
-	fieldType := reflect.TypeOf(&testObj).Elem().Field(0)
-	fieldVal := reflect.ValueOf(&testObj).Elem().Field(0)
-
-	provider := NewFlagProvider()
-	if err := provider.Init(&testObj); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if err := provider.Provide(fieldType, fieldVal); err != nil {
-		t.Fatalf("cannot set value: %v", err)
-	}
-
-	assert.Equal(t, testValue, testObj.Name)
+	err := NewFlagProvider().Init(&testObj)
+	assert.Error(t, err)
+	assert.Equal(t, "got panic: reflect.Value.Interface: cannot return value obtained from unexported field or method", err.Error())
 }
 
 func TestFlagProvider_ErrNotAPointer(t *testing.T) {
@@ -207,19 +194,16 @@ func TestFlagProvider_ErrNotAPointer(t *testing.T) {
 func TestFlagProvider_Errors(t *testing.T) {
 	testCases := map[string]struct {
 		obj           interface{}
-		osArgs        []string
 		initErr       error
 		providerError error
 	}{
 		"Empty value": {
-			osArgs: []string{"smth", "-flag_name7="},
 			obj: &struct {
 				Name string `flag:"flag_name7||Description"`
 			}{},
 			providerError: ErrEmptyValue,
 		},
 		"Tag is not unique": {
-			osArgs: []string{"smth"},
 			obj: &struct {
 				Name  string `flag:"flag_name8"`
 				Name2 string `flag:"flag_name8"`
@@ -227,7 +211,6 @@ func TestFlagProvider_Errors(t *testing.T) {
 			initErr: fmt.Errorf("%w: flag_name8", ErrTagNotUnique),
 		},
 		"No tag": {
-			osArgs: []string{"smth", "-flag_name9="},
 			obj: &struct {
 				Name string
 			}{},
