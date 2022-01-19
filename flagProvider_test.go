@@ -226,6 +226,13 @@ func TestFlagProvider_Errors(t *testing.T) {
 			}{},
 			initErr: fmt.Errorf("%w: flag_name8", ErrTagNotUnique),
 		},
+		"No tag": {
+			osArgs: []string{"smth", "-flag_name9="},
+			obj: &struct {
+				Name string
+			}{},
+			providerError: ErrNoTag,
+		},
 	}
 
 	for name, test := range testCases {

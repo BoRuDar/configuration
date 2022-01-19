@@ -135,10 +135,6 @@ func (fp flagProvider) Provide(field reflect.StructField, v reflect.Value, _ ...
 		return err
 	}
 
-	if len(fp.flagsValues) == 0 {
-		return fmt.Errorf("map of flagsValues is empty, nothing to fetch") // TODO: make error
-	}
-
 	fn := fp.flagsValues[fd.key]
 
 	val := fn()
