@@ -201,3 +201,8 @@ func TestConfigurator_NameCollision(t *testing.T) {
 	err := New(&struct{}{}, NewDefaultProvider(), NewDefaultProvider()).InitValues()
 	assert.Equal(t, ErrProviderNameCollision, err)
 }
+
+func TestConfigurator_FailedProvider(t *testing.T) {
+	err := New(&struct{}{}, NewFileProvider("doesn't exist")).InitValues()
+	assert.Equal(t, err.Error(), "cannot init [FileProvider] provider: open doesn't exist: no such file or directory")
+}
