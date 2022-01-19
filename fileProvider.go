@@ -11,6 +11,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const FileProviderName = `FileProvider`
+
 // NewFileProvider creates new provider which read values from files (json, yaml)
 func NewFileProvider(fileName string) (fp *fileProvider) {
 	return &fileProvider{fileName: fileName}
@@ -19,6 +21,10 @@ func NewFileProvider(fileName string) (fp *fileProvider) {
 type fileProvider struct {
 	fileName string
 	fileData interface{}
+}
+
+func (fileProvider) Name() string {
+	return FileProviderName
 }
 
 func (fp *fileProvider) Init(_ interface{}) error {

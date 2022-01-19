@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"reflect"
 	"testing"
@@ -179,13 +180,7 @@ func TestFlagProvider_WithErrorHandler(t *testing.T) {
 	fieldType := reflect.TypeOf(&testObj).Elem().Field(0)
 	fieldVal := reflect.ValueOf(&testObj).Elem().Field(0)
 
-	eh := func(err error) {
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-	}
-
-	provider := NewFlagProvider(WithErrorHandler(eh))
+	provider := NewFlagProvider()
 	if err := provider.Init(&testObj); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -197,46 +192,65 @@ func TestFlagProvider_WithErrorHandler(t *testing.T) {
 	assert.Equal(t, testValue, testObj.Name)
 }
 
-func TestFlagProvider_WithErrorHandlerAndErr(t *testing.T) {
+func TestFlagProvider_ErrNotAPointer(t *testing.T) {
 	type testStruct struct {
-		Name string `flag:"flag_name5||||"`
+		Name string `flag:"flag_name6||||"`
 	}
 	testObj := testStruct{}
-	numberOfExpectedCalls := 1
-	callsCounter := 0
 	os.Args = []string{""}
 
-	eh := func(err error) {
-		callsCounter++
-
-		if err != nil && err.Error() != "flagProvider: wrong flag definition [flag_name5||||]" {
-			t.Fatalf("unexpected error")
-		}
-	}
-
-	if err := NewFlagProvider(WithErrorHandler(eh)).Init(&testObj); err != nil {
+	if err := NewFlagProvider().Init(testObj); err != ErrNotAPointer {
 		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if callsCounter != numberOfExpectedCalls {
-		t.Fatalf("error must be called [%d] times but called [%d] times", numberOfExpectedCalls, callsCounter)
 	}
 }
 
-//func TestFlagProvider_Error(t *testing.T) {
-//	type testStruct struct {
-//		Name string `flag:"flag_name5||||"`
-//	}
-//	testObj := testStruct{}
-//	os.Args = []string{""}
-//
-//	eh := func(err error) {
-//		if err != nil && err.Error() != ErrNotAPointer.Error() {
-//			t.Fatalf("unexpected error: %v", err)
-//		}
-//	}
-//
-//	if err := NewFlagProvider(WithErrorHandler(eh)).Init(&testObj); err != nil {
-//		t.Fatalf("unexpected error: %v", err)
-//	}
-//}
+func TestFlagProvider_Errors(t *testing.T) {
+	testCases := map[string]struct {
+		obj           interface{}
+		osArgs        []string
+		initErr       error
+		providerError error
+	}{
+		"Empty value": {
+			osArgs: []string{"smth", "-flag_name7="},
+			obj: &struct {
+				Name string `flag:"flag_name7||Description"`
+			}{},
+			providerError: ErrEmptyValue,
+		},
+		"Tag is not unique": {
+			osArgs: []string{"smth"},
+			obj: &struct {
+				Name  string `flag:"flag_name8"`
+				Name2 string `flag:"flag_name8"`
+			}{},
+			initErr: fmt.Errorf("%w: flag_name8", ErrTagNotUnique),
+		},
+	}
+
+	for name, test := range testCases {
+		test := test
+
+		t.Run(name, func(t *testing.T) {
+			fieldType := reflect.TypeOf(test.obj).Elem().Field(0)
+			fieldVal := reflect.ValueOf(test.obj).Elem().Field(0)
+
+			provider := NewFlagProvider()
+			if err := provider.Init(test.obj); err != nil {
+				if test.initErr != nil && err.Error() == test.initErr.Error() {
+					return
+				}
+
+				t.Fatalf("unexpected init error: %v", err)
+			}
+
+			if err := provider.Provide(fieldType, fieldVal); err != nil {
+				if test.providerError != nil && err.Error() == test.providerError.Error() {
+					return
+				}
+
+				t.Fatalf("unexpected provider error: %v", err)
+			}
+		})
+	}
+}

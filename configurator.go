@@ -53,7 +53,7 @@ func (c Configurator) InitValues() error {
 
 	for _, p := range c.providers {
 		if err := p.Init(c.configPtr); err != nil {
-			return fmt.Errorf("cannot init [%s] provider: %v", "TODO", err)
+			return fmt.Errorf("cannot init [%s] provider: %v", p.Name(), err)
 		}
 	}
 

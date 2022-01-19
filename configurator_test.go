@@ -195,3 +195,35 @@ func TestSetOnFailFn(t *testing.T) {
 		t.Fatal("unexpected err: ", err)
 	}
 }
+
+func TestProviderName(t *testing.T) {
+	testCases := map[string]struct {
+		provider     Provider
+		expectedName string
+	}{
+		DefaultProviderName: {
+			provider:     NewDefaultProvider(),
+			expectedName: DefaultProviderName,
+		},
+		EnvProviderName: {
+			provider:     NewEnvProvider(),
+			expectedName: EnvProviderName,
+		},
+		FlagProviderName: {
+			provider:     NewFlagProvider(),
+			expectedName: FlagProviderName,
+		},
+		FileProviderName: {
+			provider:     NewFileProvider(""),
+			expectedName: FileProviderName,
+		},
+	}
+
+	for name, test := range testCases {
+		test := test
+
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, test.expectedName, test.provider.Name())
+		})
+	}
+}

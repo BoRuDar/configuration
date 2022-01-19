@@ -7,12 +7,18 @@ import (
 	"strings"
 )
 
+const EnvProviderName = `EnvProvider`
+
 // NewEnvProvider creates provider which sets values from ENV variables (gets variable name from `env` tag)
 func NewEnvProvider() envProvider {
 	return envProvider{}
 }
 
 type envProvider struct{}
+
+func (envProvider) Name() string {
+	return EnvProviderName
+}
 
 func (envProvider) Init(_ interface{}) error {
 	return nil
