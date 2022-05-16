@@ -5,8 +5,6 @@ import (
 	"strconv"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
 )
 
 // SetValue tests
@@ -56,7 +54,7 @@ func TestSetValue_Int64(t *testing.T) {
 
 	setInt64(fieldVal, testValue)
 
-	assert.Equal(t, testInt64, fieldVal.Int())
+	assert(t, testInt64, fieldVal.Int())
 }
 
 func TestSetValue_Duration(t *testing.T) {
@@ -69,7 +67,7 @@ func TestSetValue_Duration(t *testing.T) {
 
 	setInt64(fieldVal, testValue)
 
-	assert.Equal(t, expectedVal, time.Duration(fieldVal.Int()))
+	assert(t, expectedVal, time.Duration(fieldVal.Int()))
 }
 
 func TestSetValue_Float32(t *testing.T) {
@@ -375,8 +373,7 @@ func TestSetValue_EmptySlice(t *testing.T) {
 	testValue := " "
 
 	err := setValue(fieldType, fieldVal, testValue)
-	assert.Error(t, err)
-	assert.Equal(t, "setSlice: got emtpy slice", err.Error())
+	assert(t, "setSlice: got emtpy slice", err.Error())
 }
 
 func TestSetValue_Unsupported(t *testing.T) {
@@ -386,14 +383,11 @@ func TestSetValue_Unsupported(t *testing.T) {
 	testValue := "true; false; "
 
 	err := setValue(fieldType, fieldVal, testValue)
-	assert.Error(t, err)
-	assert.Equal(t, "setValue: unsupported type: chan", err.Error())
+	assert(t, "setValue: unsupported type: chan", err.Error())
 
 	err = setPtrValue(fieldType, fieldVal, testValue)
-	assert.Error(t, err)
-	assert.Equal(t, "setPtrValue: unsupported type: chan", err.Error())
+	assert(t, "setPtrValue: unsupported type: chan", err.Error())
 
 	err = setSlice(fieldType, fieldVal, testValue)
-	assert.Error(t, err)
-	assert.Equal(t, "setSlice: unsupported type of slice item: struct", err.Error())
+	assert(t, "setSlice: unsupported type of slice item: struct", err.Error())
 }

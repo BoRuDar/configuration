@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 )
 
@@ -48,9 +47,9 @@ func TestFileProvider_yml(t *testing.T) {
 	err2 := provider.Provide(fieldType, fieldVal, fieldPath...)
 	err3 := provider.Provide(fieldType2, fieldVal2, fieldPath2...)
 
-	assert.Nil(t, err2, "cannot set value for Inside.Beta")
-	assert.Nil(t, err3, "cannot set value for Timeout")
-	assert.Equal(t, expected, testObj)
+	assert(t, nil, err2, "cannot set value for Inside.Beta")
+	assert(t, nil, err3, "cannot set value for Timeout")
+	assert(t, expected, testObj)
 }
 
 func TestFileProvider_json(t *testing.T) {
@@ -75,7 +74,7 @@ func TestFileProvider_json(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	assert.Equal(t, expected, testObj)
+	assert(t, expected, testObj)
 }
 
 func TestFindValStrByPath(t *testing.T) {

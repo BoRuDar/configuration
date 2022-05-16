@@ -4,8 +4,6 @@ import (
 	"os"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestConfigurator(t *testing.T) {
@@ -57,23 +55,23 @@ func TestConfigurator(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	assert.Equal(t, "flag_value", cfg.Name)
-	assert.Equal(t, "defaultLastName", cfg.LastName)
-	assert.Equal(t, byte(45), cfg.Age)
-	assert.NotNil(t, cfg.BoolPtr)
-	assert.Equal(t, false, *cfg.BoolPtr)
+	assert(t, "flag_value", cfg.Name)
+	assert(t, "defaultLastName", cfg.LastName)
+	assert(t, byte(45), cfg.Age)
+	assert(t, true, cfg.BoolPtr != nil)
+	assert(t, false, *cfg.BoolPtr)
 
-	assert.NotNil(t, cfg.ObjPtr)
-	assert.Equal(t, float32(32), cfg.ObjPtr.F32)
-	assert.NotNil(t, cfg.ObjPtr.StrPtr)
-	assert.Equal(t, "str_ptr_test", *cfg.ObjPtr.StrPtr)
+	assert(t, true, cfg.ObjPtr != nil)
+	assert(t, float32(32), cfg.ObjPtr.F32)
+	assert(t, true, cfg.ObjPtr.StrPtr != nil)
+	assert(t, "str_ptr_test", *cfg.ObjPtr.StrPtr)
 
-	assert.NotNil(t, cfg.Obj.IntPtr)
-	assert.Equal(t, int16(123), *cfg.Obj.IntPtr)
-	assert.Equal(t, int(42), cfg.Obj.NameYML)
-	assert.Equal(t, []string{"one", "two"}, cfg.Obj.StrSlice)
-	assert.Equal(t, []int64{3, 4}, cfg.Obj.IntSlice)
-	assert.Equal(t, time.Millisecond*100, cfg.ObjPtr.HundredMS)
+	assert(t, true, cfg.Obj.IntPtr != nil)
+	assert(t, int16(123), *cfg.Obj.IntPtr)
+	assert(t, int(42), cfg.Obj.NameYML)
+	assert(t, []string{"one", "two"}, cfg.Obj.StrSlice)
+	assert(t, []int64{3, 4}, cfg.Obj.IntSlice)
+	assert(t, time.Millisecond*100, cfg.ObjPtr.HundredMS)
 }
 
 func TestConfigurator_Errors(t *testing.T) {
@@ -120,8 +118,8 @@ func TestEmbeddedFlags(t *testing.T) {
 		t.Fatal("unexpected err: ", err)
 	}
 
-	assert.NotNil(t, cfg.Client)
-	assert.Equal(t, cfg.Client.ServerAddress, "addr_value")
+	assert(t, true, cfg.Client != nil)
+	assert(t, cfg.Client.ServerAddress, "addr_value")
 }
 
 func TestFallBackToDefault(t *testing.T) {
@@ -139,7 +137,7 @@ func TestFallBackToDefault(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	assert.Equal(t, "default_val", cfg.NameFlag)
+	assert(t, "default_val", cfg.NameFlag)
 }
 
 func TestSetOnFailFn(t *testing.T) {
@@ -192,17 +190,17 @@ func TestProviderName(t *testing.T) {
 		test := test
 
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, test.expectedName, test.provider.Name())
+			assert(t, test.expectedName, test.provider.Name())
 		})
 	}
 }
 
 func TestConfigurator_NameCollision(t *testing.T) {
 	err := New(&struct{}{}, NewDefaultProvider(), NewDefaultProvider()).InitValues()
-	assert.Equal(t, ErrProviderNameCollision, err)
+	assert(t, ErrProviderNameCollision, err)
 }
 
 func TestConfigurator_FailedProvider(t *testing.T) {
 	err := New(&struct{}{}, NewFileProvider("doesn't exist")).InitValues()
-	assert.Equal(t, err.Error(), "cannot init [FileProvider] provider: open doesn't exist: no such file or directory")
+	assert(t, err.Error(), "cannot init [FileProvider] provider: open doesn't exist: no such file or directory")
 }

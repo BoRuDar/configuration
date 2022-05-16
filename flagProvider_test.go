@@ -6,8 +6,6 @@ import (
 	"os"
 	"reflect"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestFlagProvider(t *testing.T) {
@@ -31,7 +29,7 @@ func TestFlagProvider(t *testing.T) {
 		t.Fatalf("cannot set value: %v", err)
 	}
 
-	assert.Equal(t, testValue, testObj.Name)
+	assert(t, testValue, testObj.Name)
 }
 
 func TestFlagProvider_WithDescription(t *testing.T) {
@@ -55,7 +53,7 @@ func TestFlagProvider_WithDescription(t *testing.T) {
 		t.Fatalf("cannot set value: %v", err)
 	}
 
-	assert.Equal(t, testValue, testObj.Name)
+	assert(t, testValue, testObj.Name)
 }
 
 func TestFlagProvider_WithDefault(t *testing.T) {
@@ -77,7 +75,7 @@ func TestFlagProvider_WithDefault(t *testing.T) {
 		t.Fatalf("cannot set value: %v", err)
 	}
 
-	assert.Equal(t, testValue, testObj.Name)
+	assert(t, testValue, testObj.Name)
 }
 
 func TestGetFlagData(t *testing.T) {
@@ -138,8 +136,8 @@ func TestGetFlagData(t *testing.T) {
 			field := reflect.TypeOf(test.input).Field(0)
 			gotFlagData, err := NewFlagProvider().getFlagData(field)
 
-			assert.Equal(t, test.hasErr, err != nil)
-			assert.Equal(t, test.expected, gotFlagData)
+			assert(t, test.hasErr, err != nil)
+			assert(t, test.expected, gotFlagData)
 		})
 	}
 }
@@ -166,7 +164,7 @@ func TestFlagProvider_CustomFlagSet(t *testing.T) {
 		t.Fatalf("cannot set value: %v", err)
 	}
 
-	assert.Equal(t, testValue, testObj.Name)
+	assert(t, testValue, testObj.Name)
 }
 
 func TestFlagProvider_ErrNotAPointer(t *testing.T) {
