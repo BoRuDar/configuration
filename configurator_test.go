@@ -11,7 +11,7 @@ func TestConfigurator(t *testing.T) {
 	os.Args = []string{"smth", "-name=flag_value"}
 
 	// test file
-	fileName := "./testdata/input.yml"
+	fileName := "./testdata/input.json"
 
 	// setting env variable
 	removeEnvKey, err := setEnv("AGE_ENV", "45")
@@ -35,7 +35,7 @@ func TestConfigurator(t *testing.T) {
 
 		Obj struct {
 			IntPtr     *int16   `default:"123"`
-			NameYML    int      `default:"24"`
+			Beta       int      `file_json:"inside.beta"   default:"24"`
 			StrSlice   []string `default:"one;two"`
 			IntSlice   []int64  `default:"3; 4"`
 			unexported string   `xml:"ignored"`
@@ -45,10 +45,10 @@ func TestConfigurator(t *testing.T) {
 	configurator := New(
 		&cfg,
 		// order of execution will be preserved:
-		NewFlagProvider(),         // 1st
-		NewEnvProvider(),          // 2nd
-		NewFileProvider(fileName), // 3rd
-		NewDefaultProvider(),      // 4th
+		NewFlagProvider(),             // 1st
+		NewEnvProvider(),              // 2nd
+		NewJSONFileProvider(fileName), // 3rd
+		NewDefaultProvider(),          // 4th
 	)
 
 	if err := configurator.InitValues(); err != nil {
@@ -68,7 +68,7 @@ func TestConfigurator(t *testing.T) {
 
 	assert(t, true, cfg.Obj.IntPtr != nil)
 	assert(t, int16(123), *cfg.Obj.IntPtr)
-	assert(t, int(42), cfg.Obj.NameYML)
+	assert(t, int(42), cfg.Obj.Beta)
 	assert(t, []string{"one", "two"}, cfg.Obj.StrSlice)
 	assert(t, []int64{3, 4}, cfg.Obj.IntSlice)
 	assert(t, time.Millisecond*100, cfg.ObjPtr.HundredMS)
@@ -180,9 +180,9 @@ func TestProviderName(t *testing.T) {
 			provider:     NewFlagProvider(),
 			expectedName: FlagProviderName,
 		},
-		FileProviderName: {
-			provider:     NewFileProvider(""),
-			expectedName: FileProviderName,
+		JSONFileProviderName: {
+			provider:     NewJSONFileProvider(""),
+			expectedName: JSONFileProviderName,
 		},
 	}
 
@@ -201,6 +201,6 @@ func TestConfigurator_NameCollision(t *testing.T) {
 }
 
 func TestConfigurator_FailedProvider(t *testing.T) {
-	err := New(&struct{}{}, NewFileProvider("doesn't exist")).InitValues()
-	assert(t, err.Error(), "cannot init [FileProvider] provider: open doesn't exist: no such file or directory")
+	err := New(&struct{}{}, NewJSONFileProvider("doesn't exist")).InitValues()
+	assert(t, err.Error(), "cannot init [JSONFileProvider] provider: open doesn't exist: no such file or directory")
 }

@@ -28,12 +28,12 @@ func (ep envProvider) Provide(field reflect.StructField, v reflect.Value, _ ...s
 	key := field.Tag.Get("env")
 	if len(key) == 0 {
 		// field doesn't have a proper tag
-		return fmt.Errorf("envProvider: key is empty")
+		return fmt.Errorf("%s: key is empty", EnvProviderName)
 	}
 
 	valStr, ok := os.LookupEnv(strings.ToUpper(key))
 	if !ok || len(valStr) == 0 {
-		return fmt.Errorf("envProvider: %w", ErrEmptyValue)
+		return fmt.Errorf("%s: %w", EnvProviderName, ErrEmptyValue)
 	}
 
 	return SetField(field, v, valStr)
