@@ -9,8 +9,9 @@ import (
 const fmtMsg = "\nexpected:  (%T)(%v)\ngot:       (%T)(%v)"
 
 func assert(t *testing.T, expected, got any, msg ...string) {
-	errMsg := fmtMsg
+	t.Helper()
 
+	errMsg := fmtMsg
 	if len(msg) > 0 {
 		errMsg = strings.Join(append(msg, errMsg), " ")
 	}
