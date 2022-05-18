@@ -68,7 +68,7 @@ func (c Configurator) InitValues() error {
 	return nil
 }
 
-func (c Configurator) fillUp(i interface{}, parentPath ...string) {
+func (c Configurator) fillUp(i interface{}) {
 	var (
 		t = reflect.TypeOf(i)
 		v = reflect.ValueOf(i)
@@ -81,33 +81,32 @@ func (c Configurator) fillUp(i interface{}, parentPath ...string) {
 
 	for i := 0; i < t.NumField(); i++ {
 		var (
-			tField      = t.Field(i)
-			vField      = v.Field(i)
-			currentPath = append(parentPath, tField.Name)
+			tField = t.Field(i)
+			vField = v.Field(i)
 		)
 
 		if tField.Type.Kind() == reflect.Struct {
-			c.fillUp(vField.Addr().Interface(), currentPath...)
+			c.fillUp(vField.Addr().Interface())
 			continue
 		}
 
 		if tField.Type.Kind() == reflect.Ptr && tField.Type.Elem().Kind() == reflect.Struct {
 			vField.Set(reflect.New(tField.Type.Elem()))
-			c.fillUp(vField.Interface(), currentPath...)
+			c.fillUp(vField.Interface())
 			continue
 		}
 
-		c.applyProviders(tField, vField, currentPath)
+		c.applyProviders(tField, vField)
 	}
 }
 
-func (c Configurator) applyProviders(field reflect.StructField, v reflect.Value, currentPath []string) {
+func (c Configurator) applyProviders(field reflect.StructField, v reflect.Value) {
 	if !field.IsExported() {
 		return
 	}
 
 	for _, provider := range c.providers {
-		err := provider.Provide(field, v, currentPath...)
+		err := provider.Provide(field, v)
 		if err == nil {
 			return
 		}

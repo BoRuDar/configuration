@@ -24,7 +24,7 @@ func (envProvider) Init(_ interface{}) error {
 	return nil
 }
 
-func (ep envProvider) Provide(field reflect.StructField, v reflect.Value, _ ...string) error {
+func (ep envProvider) Provide(field reflect.StructField, v reflect.Value) error {
 	key := field.Tag.Get("env")
 	if len(key) == 0 {
 		// field doesn't have a proper tag

@@ -47,7 +47,7 @@ func (fp *fileProvider) Init(_ interface{}) error {
 	return json.Unmarshal(b, &fp.fileData)
 }
 
-func (fp fileProvider) Provide(field reflect.StructField, v reflect.Value, _ ...string) error {
+func (fp fileProvider) Provide(field reflect.StructField, v reflect.Value) error {
 	path := field.Tag.Get("file_json")
 	if len(path) == 0 {
 		// field doesn't have a proper tag

@@ -119,7 +119,7 @@ func (fp flagProvider) setFlagCallbacks(field reflect.StructField) error {
 	return nil
 }
 
-func (fp flagProvider) Provide(field reflect.StructField, v reflect.Value, _ ...string) error {
+func (fp flagProvider) Provide(field reflect.StructField, v reflect.Value) error {
 	fd, err := fp.getFlagData(field)
 	if err != nil {
 		return err

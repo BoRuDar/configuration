@@ -6,5 +6,5 @@ import "reflect"
 type Provider interface {
 	Name() string
 	Init(ptr interface{}) error
-	Provide(field reflect.StructField, v reflect.Value, pathToField ...string) error
+	Provide(field reflect.StructField, v reflect.Value) error
 }
