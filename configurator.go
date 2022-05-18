@@ -44,7 +44,7 @@ func (c *Configurator) SetOptions(options ...ConfiguratorOption) *Configurator {
 
 // InitValues sets values into struct field using given set of providers
 // respecting their order: first defined -> first executed
-func (c Configurator) InitValues() error {
+func (c *Configurator) InitValues() error {
 	if reflect.TypeOf(c.configPtr).Kind() != reflect.Ptr {
 		return ErrNotAPointer
 	}
@@ -68,7 +68,7 @@ func (c Configurator) InitValues() error {
 	return nil
 }
 
-func (c Configurator) fillUp(i interface{}) {
+func (c *Configurator) fillUp(i interface{}) {
 	var (
 		t = reflect.TypeOf(i)
 		v = reflect.ValueOf(i)
@@ -100,7 +100,7 @@ func (c Configurator) fillUp(i interface{}) {
 	}
 }
 
-func (c Configurator) applyProviders(field reflect.StructField, v reflect.Value) {
+func (c *Configurator) applyProviders(field reflect.StructField, v reflect.Value) {
 	if !field.IsExported() {
 		return
 	}

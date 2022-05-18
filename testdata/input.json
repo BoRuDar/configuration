@@ -3,5 +3,6 @@
   "inside": {
     "beta": 42
   },
-  "timeout": "101ms"
+  "timeout": "101ms",
+  "void": null
 }

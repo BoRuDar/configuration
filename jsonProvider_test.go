@@ -90,3 +90,16 @@ func TestFindValStrByPath(t *testing.T) {
 		})
 	}
 }
+
+func TestFileProvider_Init(t *testing.T) {
+	i := &struct {
+		Test int `file_json:"void."`
+	}{}
+
+	err := New(i, NewJSONFileProvider("./testdata/dummy.file")).InitValues()
+	assert(t, "cannot init [JSONFileProvider] provider: file must have .json extension", err.Error())
+
+	err = New(i, NewJSONFileProvider("./testdata/input.json")).SetOptions(OnFailFnOpt(func(err error) {
+		assert(t, "configurator: field [Test] with tags [file_json:\"void.\"] cannot be set", err.Error())
+	})).InitValues()
+}
