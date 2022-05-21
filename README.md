@@ -36,13 +36,13 @@ Supported types:
 # Quick start
 Import path `github.com/BoRuDar/configuration/v3`
 ```go
-// define a configuration object
+	// defining a struct
 cfg := struct {
     Name     string `flag:"name"`
     LastName string `default:"defaultLastName"`
-    Age      byte   `env:"AGE_ENV"`
+    Age      byte   `env:"AGE_ENV"    default:"-1"`
     BoolPtr  *bool  `default:"false"`
-
+    
     ObjPtr *struct {
         F32       float32       `default:"32"`
         StrPtr    *string       `default:"str_ptr_test"`
@@ -50,31 +50,26 @@ cfg := struct {
     }
 
     Obj struct {
-        IntPtr   *int16   `default:"123"`
-        NameYML  int      `default:"24"`
-        StrSlice []string `default:"one;two"`
-        IntSlice []int64  `default:"3; 4"`
+        IntPtr     *int16   `default:"123"`
+        Beta       int      `file_json:"inside.beta"   default:"24"`
+        StrSlice   []string `default:"one;two"`
+        IntSlice   []int64  `default:"3; 4"`
+        unexported string   `xml:"ignored"`
     }
 }{}
 
-fileProvider, err := NewFileProvider("./testdata/input.yml")
-if err != nil {
-    t.Fatalf("unexpected error: %v", err)
-}
-
-configurator, err := New(
-    &cfg, // pointer to the object for configuration 
-    NewFlagProvider(&cfg),  // 1. flag provider expects pointer to the object to initialize flags
-    NewEnvProvider(),       // 2.
-    fileProvider,           // 3.
-    NewDefaultProvider(),   // 4.
-    // providers are executed in order of the declaration from 1 to 4 
+configurator := New(
+    &cfg,
+    // order of execution will be preserved:
+    NewFlagProvider(),             // 1st
+    NewEnvProvider(),              // 2nd
+    NewJSONFileProvider(fileName), // 3rd
+    NewDefaultProvider(),          // 4th
 )
-if err != nil {
-    t.Fatalf("unexpected error: %v", err)
-}
 
-configurator.InitValues()
+if err := configurator.InitValues(); err != nil {
+    log.Fatalf("unexpected error: ", err)
+}
 ```
 
 
@@ -83,8 +78,8 @@ You can specify one or more providers. They will be executed in order of definit
 ```go
 []Provider{
     NewFlagProvider(&cfg), // 1
-    NewEnvProvider(), // 2
-    NewDefaultProvider(), // 3
+    NewEnvProvider(),      // 2
+    NewDefaultProvider(),  // 3
 } 
 ```
 If provider set value successfully next ones will not be executed (if flag provider from the sample above found a value env and default providers are skipped). 
@@ -96,7 +91,9 @@ This behavior can be changed with `configurator.SetOnFailFn` method.
 You can define a custom provider which should satisfy next interface:
 ```go
 type Provider interface {
-	Provide(field reflect.StructField, v reflect.Value, pathToField ...string) error
+    Name() string
+    Init(ptr interface{}) error
+    Provide(field reflect.StructField, v reflect.Value) error
 }
 ```
 
@@ -142,11 +139,19 @@ Flags:
 ``` 
 And program execution will be terminated.
 #### Options for _NewFlagProvider_
-* WithFlagSet - set a custom FlagSet
-* WithErrorHandler - to catch and handle errors from the init phase (before actually getting data from flags)
+* WithFlagSet - sets a custom FlagSet
 
-### File provider
-Doesn't require any specific tags. JSON and YAML formats of files are supported.
+
+### JSON File provider 
+Requires `file_json:"<path_to_json_field>"` tag.
 ```go
-    NewFileProvider("./testdata/input.yml")
+    NewJSONFileProvider("./testdata/input.json")
+```
+For example, tag `file_json:"cache.retention"` will assume that you have this structure of your JSON file:
+```json
+{
+  "cache": {
+    "retention": 1
+  }
+}
 ```

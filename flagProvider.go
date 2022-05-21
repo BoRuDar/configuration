@@ -63,7 +63,9 @@ type flagProvider struct {
 }
 
 type flagData struct {
-	key, defaultVal, usage string
+	key        string
+	defaultVal string
+	usage      string
 }
 
 func (fp flagProvider) initFlagProvider(i interface{}) error {
@@ -116,6 +118,7 @@ func (fp flagProvider) setFlagCallbacks(field reflect.StructField) error {
 	fp.flagsValues[fd.key] = func() *string {
 		return valStr
 	}
+
 	return nil
 }
 
