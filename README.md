@@ -72,7 +72,7 @@ if err := configurator.InitValues(); err != nil {
 }
 ```
 
-If you need only ENV variables and default values you can use a short helper func:
+If you need only ENV variables and default values you can use a shorter form:
 ```go
 err := configuration.FromEnvAndDefault(&cfg)
 ```
