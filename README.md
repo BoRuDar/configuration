@@ -10,7 +10,7 @@ Available features:
 - setting *default* values for struct fields - `NewDefaultProvider()`
 - setting values from *environment* variables - `NewEnvProvider()`
 - setting values from command line *flags* - `NewFlagProvider(&cfg)`
-- setting values from *files* (JSON or YAML) - `NewFileProvider("./testdata/input.yml")`
+- setting values from a JSON *file* - `NewJSONFileProvider("./testdata/input.json")`
 
 Supported types:
 - `string`, `*string`, `[]string`
@@ -24,6 +24,7 @@ Supported types:
 - `time.Duration` from strings like `12ms`, `2s` etc.
 - embedded structs and pointers to structs
 
+
 # Why?
 - your entire configuration can be defined in one model
 - all metadata is in your model (defined with `tags`)
@@ -33,8 +34,9 @@ Supported types:
 - no external dependencies
 - complies with `12-factor app`
 
+
 # Quick start
-Import path `github.com/BoRuDar/configuration/v3`
+Import path `github.com/BoRuDar/configuration/v4`
 ```go
 	// defining a struct
 cfg := struct {
@@ -178,6 +180,10 @@ For example, tag `file_json:"cache.retention"` will assume that you have this st
 ```
 
 
-### Contribution
+### Additional providers
+* [YAML files](https://github.com/BoRuDar/)
+
+
+# Contribution
 1. Open a feature request or a bug report in [issues](https://github.com/BoRuDar/configuration/issues)
 2. Fork and create a PR into `dev` branch
