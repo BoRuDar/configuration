@@ -90,7 +90,7 @@ You can specify one or more providers. They will be executed in order of definit
 If provider set value successfully next ones will not be executed (if flag provider from the sample above found a value env and default providers are skipped). 
 The value of first successfully executed provider will be set.
 If none of providers found value - an application will be terminated.
-This behavior can be changed with `configurator.SetOnFailFn` option:
+This behavior can be changed with `configurator.OnFailFnOpt` option:
 ```go
 err := configuration.New(
     &cfg,
@@ -117,35 +117,38 @@ type Provider interface {
 ### Default provider
 Looks for `default` tag and set value from it:
 ```go
-    struct {
-        // ...
-        Name string `default:"defaultName"`
-        // ...
-    }
+struct {
+    // ...
+    Name string `default:"defaultName"`
+    // ...
+}
 ```
 
 
 ### Env provider
 Looks for `env` tag and tries to find an ENV variable with the name from the tag (`AGE` in this example):
 ```go
-    struct {
-        // ...
-        Age      byte   `env:"AGE"`
-        // ...
-    }
+struct {
+    // ...
+    Age      byte   `env:"AGE"`
+    // ...
+}
 ```
-Name inside tag `env:"<name>"` must be unique for each field and be in the UPPER register
-(`env_name` - bad, `ENV_NAME` - good).
+Name inside tag `env:"<name>"` must be unique for each field. Only UPPER register for ENV vars is accepted:
+```bash
+bad_env_var_name=bad
+GOOD_ENV_VAR_NAME=good
+```
 
 
 ### Flag provider
 Looks for `flag` tag and tries to set value from the command line flag `-first_name`
 ```go
-    struct {
-        // ...
-        Name     string `flag:"first_name|default_value|Description"`
-        // ...
-    }
+struct {
+    // ...
+    Name     string `flag:"first_name|default_value|Description"`
+    // ...
+}
 ```
 Name inside tag `flag:"<name>"` must be unique for each field. `default_value` and `description` sections are `optional` and can be omitted.
 `NewFlagProvider(&cfg)` expects a pointer to the same object for initialization.
@@ -163,7 +166,7 @@ And program execution will be terminated.
 ### JSON File provider 
 Requires `file_json:"<path_to_json_field>"` tag.
 ```go
-    NewJSONFileProvider("./testdata/input.json")
+NewJSONFileProvider("./testdata/input.json")
 ```
 For example, tag `file_json:"cache.retention"` will assume that you have this structure of your JSON file:
 ```json
