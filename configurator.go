@@ -115,6 +115,7 @@ func (c *Configurator) applyProviders(field reflect.StructField, v reflect.Value
 	c.onErrorFn(fmt.Errorf("configurator: field [%s] with tags [%v] cannot be set", field.Name, field.Tag))
 }
 
+// FromEnvAndDefault is a shortcut for `New(cfg, NewEnvProvider(), NewDefaultProvider()).InitValues()`.
 func FromEnvAndDefault(cfg any) error {
 	return New(cfg, NewEnvProvider(), NewDefaultProvider()).InitValues()
 }
