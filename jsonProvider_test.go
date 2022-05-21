@@ -7,16 +7,6 @@ import (
 	"time"
 )
 
-type testStruct struct {
-	Name    string        `file_json:"name"`
-	Timeout time.Duration `file_json:"timeout"`
-	Inside  embedded
-}
-
-type embedded struct {
-	Beta int `file_json:"inside.beta"`
-}
-
 func TestJSONFileProvider_json(t *testing.T) {
 	type test struct {
 		Timeout time.Duration `file_json:"timeout"`
@@ -43,6 +33,16 @@ func TestJSONFileProvider_json(t *testing.T) {
 }
 
 func TestFindValStrByPath(t *testing.T) {
+	type embedded struct {
+		Beta int `file_json:"inside.beta"`
+	}
+
+	type testStruct struct {
+		Name    string        `file_json:"name"`
+		Timeout time.Duration `file_json:"timeout"`
+		Inside  embedded
+	}
+
 	var testObjFromJSON interface{}
 	data, _ := json.Marshal(testStruct{
 		Name:   "test",
@@ -76,6 +76,13 @@ func TestFindValStrByPath(t *testing.T) {
 			path:         []string{"Inside", "Beta"},
 			expectedStr:  "42",
 			expectedBool: true,
+		},
+		{
+			name:         "not found",
+			input:        testObjFromJSON,
+			path:         []string{"notfound"},
+			expectedStr:  "",
+			expectedBool: false,
 		},
 	}
 
