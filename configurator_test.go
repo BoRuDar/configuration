@@ -1,86 +1,76 @@
 package configuration
 
 import (
-	"fmt"
 	"os"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestConfigurator(t *testing.T) {
 	// setting command line flag
 	os.Args = []string{"smth", "-name=flag_value"}
 
+	// test file
+	fileName := "./testdata/input.json"
+
 	// setting env variable
-	removeEnvKey, err := setEnv("AGE_ENV", "45")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	defer removeEnvKey()
+	t.Setenv("AGE_ENV", "45")
 
 	// defining a struct
 	cfg := struct {
 		Name     string `flag:"name"`
 		LastName string `default:"defaultLastName"`
-		Age      byte   `env:"AGE_ENV"`
+		Age      byte   `env:"AGE_ENV"               default:"-1"`
 		BoolPtr  *bool  `default:"false"`
-
-		ObjPtr *struct {
+		ObjPtr   *struct {
 			F32       float32       `default:"32"`
 			StrPtr    *string       `default:"str_ptr_test"`
 			HundredMS time.Duration `default:"100ms"`
 		}
-
 		Obj struct {
-			IntPtr   *int16   `default:"123"`
-			NameYML  int      `default:"24"`
-			StrSlice []string `default:"one;two"`
-			IntSlice []int64  `default:"3; 4"`
+			IntPtr     *int16   `default:"123"`
+			Beta       int      `file_json:"inside.beta"   default:"24"`
+			StrSlice   []string `default:"one;two"`
+			IntSlice   []int64  `default:"3; 4"`
+			unexported string   `xml:"ignored"`
 		}
 	}{}
 
-	fileProvider, err := NewFileProvider("./testdata/input.yml")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	configurator, err := New(&cfg,
-		// order of execution will be kept:
-		NewFlagProvider(&cfg), // 1st
-		NewEnvProvider(),      // 2nd
-		fileProvider,          // 3rd
-		NewDefaultProvider(),  // 4th
+	configurator := New(
+		&cfg,
+		// order of execution will be preserved:
+		NewFlagProvider(),             // 1st
+		NewEnvProvider(),              // 2nd
+		NewJSONFileProvider(fileName), // 3rd
+		NewDefaultProvider(),          // 4th
 	)
-	if err != nil {
+
+	if err := configurator.InitValues(); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	configurator.InitValues()
+	assert(t, "flag_value", cfg.Name)
+	assert(t, "defaultLastName", cfg.LastName)
+	assert(t, byte(45), cfg.Age)
+	assert(t, true, cfg.BoolPtr != nil)
+	assert(t, false, *cfg.BoolPtr)
 
-	assert.Equal(t, "flag_value", cfg.Name)
-	assert.Equal(t, "defaultLastName", cfg.LastName)
-	assert.Equal(t, byte(45), cfg.Age)
-	assert.NotNil(t, cfg.BoolPtr)
-	assert.Equal(t, false, *cfg.BoolPtr)
+	assert(t, true, cfg.ObjPtr != nil)
+	assert(t, float32(32), cfg.ObjPtr.F32)
+	assert(t, true, cfg.ObjPtr.StrPtr != nil)
+	assert(t, "str_ptr_test", *cfg.ObjPtr.StrPtr)
 
-	assert.NotNil(t, cfg.ObjPtr)
-	assert.Equal(t, float32(32), cfg.ObjPtr.F32)
-	assert.NotNil(t, cfg.ObjPtr.StrPtr)
-	assert.Equal(t, "str_ptr_test", *cfg.ObjPtr.StrPtr)
-
-	assert.NotNil(t, cfg.Obj.IntPtr)
-	assert.Equal(t, int16(123), *cfg.Obj.IntPtr)
-	assert.Equal(t, int(42), cfg.Obj.NameYML)
-	assert.Equal(t, []string{"one", "two"}, cfg.Obj.StrSlice)
-	assert.Equal(t, []int64{3, 4}, cfg.Obj.IntSlice)
-	assert.Equal(t, time.Millisecond*100, cfg.ObjPtr.HundredMS)
+	assert(t, true, cfg.Obj.IntPtr != nil)
+	assert(t, int16(123), *cfg.Obj.IntPtr)
+	assert(t, int(42), cfg.Obj.Beta)
+	assert(t, []string{"one", "two"}, cfg.Obj.StrSlice)
+	assert(t, []int64{3, 4}, cfg.Obj.IntSlice)
+	assert(t, time.Millisecond*100, cfg.ObjPtr.HundredMS)
 }
 
 func TestConfigurator_Errors(t *testing.T) {
 	tests := map[string]struct {
-		input     interface{}
+		input     any
 		providers []Provider
 	}{
 		"empty providers": {
@@ -98,7 +88,7 @@ func TestConfigurator_Errors(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			_, err := New(test.input, test.providers...)
+			err := New(test.input, test.providers...).InitValues()
 			if err == nil {
 				t.Fatal("expected error but got nil")
 			}
@@ -118,47 +108,12 @@ func TestEmbeddedFlags(t *testing.T) {
 	os.Args = []string{"smth", "-addr=addr_value"}
 
 	var cfg Config
-	c, err := New(&cfg, NewFlagProvider(&cfg))
-	if err != nil {
+	if err := New(&cfg, NewFlagProvider()).InitValues(); err != nil {
 		t.Fatal("unexpected err: ", err)
 	}
 
-	c.InitValues()
-
-	assert.NotNil(t, cfg.Client)
-	assert.Equal(t, cfg.Client.ServerAddress, "addr_value")
-}
-
-func TestSetLogger(t *testing.T) {
-	var (
-		cfg = struct {
-			Name string `default:"test_name"`
-		}{}
-		logs  []string // collects log output into slice
-		logFn = func(format string, v ...interface{}) {
-			logs = append(logs, fmt.Sprintf(format, v...))
-		}
-		expectedLogs = []string{
-			"configurator: current path: [Name]",
-			"configurator: envProvider: key is empty",
-		}
-	)
-
-	c, err := New(
-		&cfg,
-		NewEnvProvider(),
-		NewDefaultProvider(),
-	)
-	if err != nil {
-		t.Fatal("unexpected err: ", err)
-	}
-
-	c.SetLogger(logFn)
-	c.EnableLogging(true)
-	c.InitValues()
-
-	assert.Equal(t, cfg.Name, "test_name")
-	assert.Equal(t, expectedLogs, logs)
+	assert(t, true, cfg.Client != nil)
+	assert(t, cfg.Client.ServerAddress, "addr_value")
 }
 
 func TestFallBackToDefault(t *testing.T) {
@@ -167,40 +122,97 @@ func TestFallBackToDefault(t *testing.T) {
 		NameFlag string `flag:"name_flag||Some description"   default:"default_val"`
 	}{}
 
-	configurator, err := New(&cfg,
-		NewFlagProvider(&cfg),
+	c := New(&cfg,
+		NewFlagProvider(),
 		NewDefaultProvider(),
 	)
-	if err != nil {
+
+	if err := c.InitValues(); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	configurator.EnableLogging(true)
-	configurator.InitValues()
-
-	assert.Equal(t, "default_val", cfg.NameFlag)
+	assert(t, "default_val", cfg.NameFlag)
 }
 
 func TestSetOnFailFn(t *testing.T) {
-	var (
-		cfg = struct {
-			Name string `default:"test_name"`
-		}{}
-		onFailFn = func(err error) {
-			if err.Error() != "configurator: field [Name] with tags [default:\"test_name\"] cannot be set" {
-				t.Fatalf("unexpected error: %v", err)
-			}
+	cfg := struct {
+		Name string `default:"test_name"`
+	}{}
+	onFailFn := func(err error) {
+		if err != nil && err.Error() != "configurator: field [Name] with tags [default:\"test_name\"] cannot be set" {
+			t.Fatalf("unexpected error: %v", err)
 		}
-	)
-
-	c, err := New(
-		&cfg,
-		NewEnvProvider(),
-	)
-	if err != nil {
-		t.Fatal("unexpected err: ", err)
 	}
 
-	c.SetOnFailFn(onFailFn)
-	c.InitValues()
+	c := New(
+		&cfg,
+		NewFlagProvider(),
+	).
+		SetOptions(
+			OnFailFnOpt(onFailFn),
+		)
+
+	if err := c.InitValues(); err != nil {
+		t.Fatal("unexpected err: ", err)
+	}
+}
+
+func TestProviderName(t *testing.T) {
+	testCases := map[string]struct {
+		provider     Provider
+		expectedName string
+	}{
+		DefaultProviderName: {
+			provider:     NewDefaultProvider(),
+			expectedName: DefaultProviderName,
+		},
+		EnvProviderName: {
+			provider:     NewEnvProvider(),
+			expectedName: EnvProviderName,
+		},
+		FlagProviderName: {
+			provider:     NewFlagProvider(),
+			expectedName: FlagProviderName,
+		},
+		JSONFileProviderName: {
+			provider:     NewJSONFileProvider(""),
+			expectedName: JSONFileProviderName,
+		},
+	}
+
+	for name, test := range testCases {
+		test := test
+
+		t.Run(name, func(t *testing.T) {
+			assert(t, test.expectedName, test.provider.Name())
+		})
+	}
+}
+
+func TestConfigurator_NameCollision(t *testing.T) {
+	err := New(&struct{}{}, NewDefaultProvider(), NewDefaultProvider()).InitValues()
+	assert(t, ErrProviderNameCollision, err)
+}
+
+func TestConfigurator_FailedProvider(t *testing.T) {
+	err := New(&struct{}{}, NewJSONFileProvider("doesn't exist")).InitValues()
+	assert(t, err.Error(), "cannot init [JSONFileProvider] provider: open doesn't exist: no such file or directory")
+}
+
+func Test_FromEnvAndDefault(t *testing.T) {
+	t.Setenv("AGE", "24")
+
+	type st struct {
+		Name string `env:"name"    default:"Alex"`
+		Age  int    `env:"AGE"     default:"42"`
+	}
+
+	cfg := st{}
+
+	if err := FromEnvAndDefault(&cfg); err != nil {
+		t.Fatal("unexpected err", err)
+	}
+
+	assert(t, cfg.Name, "Alex")
+	assert(t, cfg.Age, 24)
 }

@@ -10,7 +10,7 @@ Available features:
 - setting *default* values for struct fields - `NewDefaultProvider()`
 - setting values from *environment* variables - `NewEnvProvider()`
 - setting values from command line *flags* - `NewFlagProvider(&cfg)`
-- setting values from *files* (JSON or YAML) - `NewFileProvider("./testdata/input.yml")`
+- setting values from a JSON *file* - `NewJSONFileProvider("./testdata/input.json")`
 
 Supported types:
 - `string`, `*string`, `[]string`
@@ -24,25 +24,27 @@ Supported types:
 - `time.Duration` from strings like `12ms`, `2s` etc.
 - embedded structs and pointers to structs
 
+
 # Why?
 - your entire configuration can be defined in one model
 - all metadata is in your model (defined with `tags`)
 - easy to set/change a source of data for your configuration
 - easy to set a priority of sources to fetch data from (e.g., 1.`flags`, 2.`env`, 3.`default` or another order)
 - you can implement your custom provider
-- only `2` external dependencies
+- no external dependencies
 - complies with `12-factor app`
 
+
 # Quick start
-Import path `github.com/BoRuDar/configuration/v3`
+Import path `github.com/BoRuDar/configuration/v4`
 ```go
-// define a configuration object
+	// defining a struct
 cfg := struct {
     Name     string `flag:"name"`
     LastName string `default:"defaultLastName"`
-    Age      byte   `env:"AGE_ENV"`
+    Age      byte   `env:"AGE_ENV"    default:"-1"`
     BoolPtr  *bool  `default:"false"`
-
+    
     ObjPtr *struct {
         F32       float32       `default:"32"`
         StrPtr    *string       `default:"str_ptr_test"`
@@ -50,31 +52,31 @@ cfg := struct {
     }
 
     Obj struct {
-        IntPtr   *int16   `default:"123"`
-        NameYML  int      `default:"24"`
-        StrSlice []string `default:"one;two"`
-        IntSlice []int64  `default:"3; 4"`
+        IntPtr     *int16   `default:"123"`
+        Beta       int      `file_json:"inside.beta"   default:"24"`
+        StrSlice   []string `default:"one;two"`
+        IntSlice   []int64  `default:"3; 4"`
+        unexported string   `xml:"ignored"`
     }
 }{}
 
-fileProvider, err := NewFileProvider("./testdata/input.yml")
-if err != nil {
-    t.Fatalf("unexpected error: %v", err)
-}
-
-configurator, err := New(
-    &cfg, // pointer to the object for configuration 
-    NewFlagProvider(&cfg),  // 1. flag provider expects pointer to the object to initialize flags
-    NewEnvProvider(),       // 2.
-    fileProvider,           // 3.
-    NewDefaultProvider(),   // 4.
-    // providers are executed in order of the declaration from 1 to 4 
+configurator := configuration.New(
+    &cfg,
+    // order of execution will be preserved: 
+    configuration.NewFlagProvider(),             // 1st
+    configuration.NewEnvProvider(),              // 2nd 
+    configuration.NewJSONFileProvider(fileName), // 3rd 
+    configuration.NewDefaultProvider(),          // 4th
 )
-if err != nil {
-    t.Fatalf("unexpected error: %v", err)
-}
 
-configurator.InitValues()
+if err := configurator.InitValues(); err != nil {
+    log.Fatalf("unexpected error: ", err)
+}
+```
+
+If you need only ENV variables and default values you can use a shorter form:
+```go
+err := configuration.FromEnvAndDefault(&cfg)
 ```
 
 
@@ -83,54 +85,72 @@ You can specify one or more providers. They will be executed in order of definit
 ```go
 []Provider{
     NewFlagProvider(&cfg), // 1
-    NewEnvProvider(), // 2
-    NewDefaultProvider(), // 3
+    NewEnvProvider(),      // 2
+    NewDefaultProvider(),  // 3
 } 
 ```
 If provider set value successfully next ones will not be executed (if flag provider from the sample above found a value env and default providers are skipped). 
 The value of first successfully executed provider will be set.
 If none of providers found value - an application will be terminated.
-This behavior can be changed with `configurator.SetOnFailFn` method.
+This behavior can be changed with `configurator.OnFailFnOpt` option:
+```go
+err := configuration.New(
+    &cfg,
+    configuration.NewEnvProvider(),
+    configuration.NewDefaultProvider()).
+    SetOptions(
+        configuration.OnFailFnOpt(func(err error) {
+            log.Println(err)
+        }),
+    ).InitValues()
+```
+
 
 ### Custom provider
 You can define a custom provider which should satisfy next interface:
 ```go
 type Provider interface {
-	Provide(field reflect.StructField, v reflect.Value, pathToField ...string) error
+    Name() string
+    Init(ptr any) error
+    Provide(field reflect.StructField, v reflect.Value) error
 }
 ```
 
 ### Default provider
 Looks for `default` tag and set value from it:
 ```go
-    struct {
-        // ...
-        Name string `default:"defaultName"`
-        // ...
-    }
+struct {
+    // ...
+    Name string `default:"defaultName"`
+    // ...
+}
 ```
 
 
 ### Env provider
 Looks for `env` tag and tries to find an ENV variable with the name from the tag (`AGE` in this example):
 ```go
-    struct {
-        // ...
-        Age      byte   `env:"AGE"`
-        // ...
-    }
+struct {
+    // ...
+    Age      byte   `env:"AGE"`
+    // ...
+}
 ```
-Name inside tag `env:"<name>"` must be unique for each field.
+Name inside tag `env:"<name>"` must be unique for each field. Only UPPER register for ENV vars is accepted:
+```bash
+bad_env_var_name=bad
+GOOD_ENV_VAR_NAME=good
+```
 
 
 ### Flag provider
 Looks for `flag` tag and tries to set value from the command line flag `-first_name`
 ```go
-    struct {
-        // ...
-        Name     string `flag:"first_name|default_value|Description"`
-        // ...
-    }
+struct {
+    // ...
+    Name     string `flag:"first_name|default_value|Description"`
+    // ...
+}
 ```
 Name inside tag `flag:"<name>"` must be unique for each field. `default_value` and `description` sections are `optional` and can be omitted.
 `NewFlagProvider(&cfg)` expects a pointer to the same object for initialization.
@@ -142,11 +162,28 @@ Flags:
 ``` 
 And program execution will be terminated.
 #### Options for _NewFlagProvider_
-* WithFlagSet - set a custom FlagSet
-* WithErrorHandler - to catch and handle errors from the init phase (before actually getting data from flags)
+* WithFlagSet - sets a custom FlagSet
 
-### File provider
-Doesn't require any specific tags. JSON and YAML formats of files are supported.
+
+### JSON File provider 
+Requires `file_json:"<path_to_json_field>"` tag.
 ```go
-    NewFileProvider("./testdata/input.yml")
+NewJSONFileProvider("./testdata/input.json")
 ```
+For example, tag `file_json:"cache.retention"` will assume that you have this structure of your JSON file:
+```json
+{
+  "cache": {
+    "retention": 1
+  }
+}
+```
+
+
+### Additional providers
+* [YAML files](https://github.com/BoRuDar/configuration-yaml-file)
+
+
+# Contribution
+1. Open a feature request or a bug report in [issues](https://github.com/BoRuDar/configuration/issues)
+2. Fork and create a PR into `dev` branch

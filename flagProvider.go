@@ -8,28 +8,38 @@ import (
 	"strings"
 )
 
-const flagSeparator = "|"
+const (
+	FlagProviderName = `FlagProvider`
+	flagSeparator    = "|"
+)
 
 type FlagProviderOption func(*flagProvider)
 
 // NewFlagProvider creates a new provider to fetch data from flags like: --flag_name some_value
-func NewFlagProvider(ptrToCfg interface{}, opts ...FlagProviderOption) flagProvider {
+func NewFlagProvider(opts ...FlagProviderOption) flagProvider {
 	fp := flagProvider{
-		flagsValues:  map[string]func() *string{},
-		flags:        map[string]*flagData{},
-		flagSet:      flag.CommandLine,
-		errorHandler: func(err error) {},
+		flagsValues: map[string]func() *string{},
+		flags:       map[string]*flagData{},
+		flagSet:     flag.CommandLine,
 	}
 
 	for _, f := range opts {
 		f(&fp)
 	}
 
-	fp.errorHandler(fp.initFlagProvider(ptrToCfg))
-
-	fp.errorHandler(fp.flagSet.Parse(os.Args[1:]))
-
 	return fp
+}
+
+func (flagProvider) Name() string {
+	return FlagProviderName
+}
+
+func (fp flagProvider) Init(ptr any) (err error) {
+	if err := fp.initFlagProvider(ptr); err != nil {
+		return err
+	}
+
+	return fp.flagSet.Parse(os.Args[1:])
 }
 
 // FlagSet is the part of flag.FlagSet that NewFlagProvider uses
@@ -46,25 +56,19 @@ func WithFlagSet(s FlagSet) FlagProviderOption {
 	}
 }
 
-// WithErrorHandler captures errors from fp.initFlagProvider and fp.flagSet.Parse
-func WithErrorHandler(fn func(err error)) FlagProviderOption {
-	return func(fp *flagProvider) {
-		fp.errorHandler = fn
-	}
-}
-
 type flagProvider struct {
-	flagsValues  map[string]func() *string
-	flags        map[string]*flagData
-	flagSet      FlagSet
-	errorHandler func(err error)
+	flagsValues map[string]func() *string
+	flags       map[string]*flagData
+	flagSet     FlagSet
 }
 
 type flagData struct {
-	key, defaultVal, usage string
+	key        string
+	defaultVal string
+	usage      string
 }
 
-func (fp flagProvider) initFlagProvider(i interface{}) error {
+func (fp flagProvider) initFlagProvider(i any) error {
 	var (
 		t = reflect.TypeOf(i)
 		v = reflect.ValueOf(i)
@@ -81,34 +85,32 @@ func (fp flagProvider) initFlagProvider(i interface{}) error {
 	for i := 0; i < t.NumField(); i++ {
 		tField := t.Field(i)
 		if tField.Type.Kind() == reflect.Struct {
-			if err := fp.initFlagProvider(v.Field(i).Addr().Interface()); err != nil {
-				return err
-			}
+			_ = fp.initFlagProvider(v.Field(i).Addr().Interface())
 			continue
 		}
 
 		if tField.Type.Kind() == reflect.Ptr && tField.Type.Elem().Kind() == reflect.Struct {
 			v.Field(i).Set(reflect.New(tField.Type.Elem()))
 
-			if err := fp.initFlagProvider(v.Field(i).Interface()); err != nil {
-				return err
-			}
+			_ = fp.initFlagProvider(v.Field(i).Interface())
 			continue
 		}
 
-		fp.errorHandler(fp.setFlagCallbacks(tField))
+		if err := fp.setFlagCallbacks(tField); err != nil && err != ErrNoTag { // 'flag' tag is not set for struct field
+			return err
+		}
 	}
 	return nil
 }
 
 func (fp flagProvider) setFlagCallbacks(field reflect.StructField) error {
-	fd, err := getFlagData(field)
+	fd, err := fp.getFlagData(field)
 	if err != nil {
 		return err
 	}
 
 	if _, ok := fp.flagsValues[fd.key]; ok {
-		return fmt.Errorf("flagProvider: flag for the key [%s] is already set", fd.key) // TOOD: test
+		return fmt.Errorf("%w: %s", ErrTagNotUnique, fd.key)
 	}
 	fp.flags[fd.key] = fd
 
@@ -116,36 +118,30 @@ func (fp flagProvider) setFlagCallbacks(field reflect.StructField) error {
 	fp.flagsValues[fd.key] = func() *string {
 		return valStr
 	}
+
 	return nil
 }
 
-func (fp flagProvider) Provide(field reflect.StructField, v reflect.Value, _ ...string) error {
-	fd, err := getFlagData(field)
+func (fp flagProvider) Provide(field reflect.StructField, v reflect.Value) error {
+	fd, err := fp.getFlagData(field)
 	if err != nil {
 		return err
 	}
 
-	if len(fp.flagsValues) == 0 {
-		return fmt.Errorf("flagProvider: map of flagsValues is empty, nothing to fetch")
-	}
-
-	fn, ok := fp.flagsValues[fd.key]
-	if !ok {
-		return fmt.Errorf("flagProvider: callback for key [%s] is not found", fd.key)
-	}
+	fn := fp.flagsValues[fd.key]
 
 	val := fn()
 	if val == nil || len(*val) == 0 {
-		return fmt.Errorf("flagProvider: %w", ErrEmptyValue)
+		return ErrEmptyValue
 	}
 
 	return SetField(field, v, *val)
 }
 
-func getFlagData(field reflect.StructField) (*flagData, error) {
-	key := getFlagTag(field)
+func (fp flagProvider) getFlagData(field reflect.StructField) (*flagData, error) {
+	key := field.Tag.Get("flag")
 	if len(key) == 0 {
-		return nil, fmt.Errorf("flagProvider: getFlagTag returns empty value")
+		return nil, ErrNoTag
 	}
 
 	flagInfo := strings.Split(key, flagSeparator)
@@ -156,16 +152,19 @@ func getFlagData(field reflect.StructField) (*flagData, error) {
 			defaultVal: strings.TrimSpace(flagInfo[1]),
 			usage:      flagInfo[2],
 		}, nil
+
 	case 2:
 		return &flagData{
 			key:        strings.TrimSpace(flagInfo[0]),
 			defaultVal: strings.TrimSpace(flagInfo[1]),
 		}, nil
+
 	case 1:
 		return &flagData{
 			key: strings.TrimSpace(flagInfo[0]),
 		}, nil
+
 	default:
-		return nil, fmt.Errorf("flagProvider: wrong flag definition [%s]", key)
+		return nil, fmt.Errorf("wrong flag definition [%s]", key)
 	}
 }
