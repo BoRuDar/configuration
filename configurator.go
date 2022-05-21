@@ -9,7 +9,7 @@ import (
 
 // New creates a new instance of the Configurator.
 func New(
-	cfgPtr interface{}, // must be a pointer to a struct
+	cfgPtr any, // must be a pointer to a struct
 	providers ...Provider, // providers will be executed in order of their declaration
 ) *Configurator {
 	return &Configurator{
@@ -27,11 +27,11 @@ func New(
 }
 
 type Configurator struct {
-	configPtr      interface{}
+	configPtr      any
 	providers      []Provider
 	registeredTags map[string]struct{}
 	onErrorFn      func(err error)
-	loggerFn       func(format string, v ...interface{})
+	loggerFn       func(format string, v ...any)
 	loggingEnabled bool
 }
 
@@ -68,7 +68,7 @@ func (c *Configurator) InitValues() error {
 	return nil
 }
 
-func (c *Configurator) fillUp(i interface{}) {
+func (c *Configurator) fillUp(i any) {
 	var (
 		t = reflect.TypeOf(i)
 		v = reflect.ValueOf(i)
@@ -113,4 +113,8 @@ func (c *Configurator) applyProviders(field reflect.StructField, v reflect.Value
 	}
 
 	c.onErrorFn(fmt.Errorf("configurator: field [%s] with tags [%v] cannot be set", field.Name, field.Tag))
+}
+
+func FromEnvAndDefault(cfg any) error {
+	return New(cfg, NewEnvProvider(), NewDefaultProvider()).InitValues()
 }

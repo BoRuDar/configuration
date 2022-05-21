@@ -43,7 +43,7 @@ func TestFindValStrByPath(t *testing.T) {
 		Inside  embedded
 	}
 
-	var testObjFromJSON interface{}
+	var testObjFromJSON any
 	data, _ := json.Marshal(testStruct{
 		Name:   "test",
 		Inside: embedded{Beta: 42},
@@ -52,7 +52,7 @@ func TestFindValStrByPath(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		input        interface{}
+		input        any
 		path         []string
 		expectedStr  string
 		expectedBool bool

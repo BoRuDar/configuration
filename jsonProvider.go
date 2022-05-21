@@ -21,14 +21,14 @@ func NewJSONFileProvider(fileName string) (fp *fileProvider) {
 
 type fileProvider struct {
 	fileName string
-	fileData interface{}
+	fileData any
 }
 
 func (fileProvider) Name() string {
 	return JSONFileProviderName
 }
 
-func (fp *fileProvider) Init(_ interface{}) error {
+func (fp *fileProvider) Init(_ any) error {
 	file, err := os.Open(fp.fileName)
 	if err != nil {
 		return err
@@ -62,13 +62,13 @@ func (fp fileProvider) Provide(field reflect.StructField, v reflect.Value) error
 	return SetField(field, v, valStr)
 }
 
-func findValStrByPath(i interface{}, path []string) (string, bool) {
+func findValStrByPath(i any, path []string) (string, bool) {
 	if len(path) == 0 {
 		return "", false
 	}
 	firstInPath := strings.ToLower(path[0])
 
-	currentFieldStr, ok := i.(map[string]interface{}) // unmarshaled from json
+	currentFieldStr, ok := i.(map[string]any) // unmarshal from JSON
 	if !ok {
 		return "", false
 	}
@@ -82,6 +82,7 @@ func findValStrByPath(i interface{}, path []string) (string, bool) {
 		if !ok {
 			return "", false
 		}
+
 		return fmt.Sprint(val), true
 	}
 

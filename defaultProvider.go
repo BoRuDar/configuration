@@ -18,7 +18,7 @@ func (defaultProvider) Name() string {
 	return DefaultProviderName
 }
 
-func (defaultProvider) Init(_ interface{}) error {
+func (defaultProvider) Init(_ any) error {
 	return nil
 }
 

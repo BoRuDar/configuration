@@ -1,7 +1,6 @@
 package configuration
 
 import (
-	"os"
 	"reflect"
 	"testing"
 )
@@ -18,11 +17,7 @@ func TestEnvProvider(t *testing.T) {
 	provider := NewEnvProvider()
 	testValue := "ENV_VAL2"
 
-	removeEnvKey, err := setEnv("ENV_KEY1", testValue)
-	if err != nil {
-		t.Fatal("unexpected err: ", err)
-	}
-	defer removeEnvKey()
+	t.Setenv("ENV_KEY1", testValue)
 
 	if err := provider.Provide(fieldType, fieldVal); err != nil {
 		t.Fatalf("cannot set value: %v", err)
@@ -47,10 +42,4 @@ func TestEnvProviderFailed(t *testing.T) {
 	if err := provider.Provide(fieldType, fieldVal); err == nil {
 		t.Fatal("must NOT be nil")
 	}
-}
-
-func setEnv(key, val string) (func(), error) {
-	return func() {
-		_ = os.Unsetenv(key)
-	}, os.Setenv(key, val)
 }

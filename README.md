@@ -30,7 +30,7 @@ Supported types:
 - easy to set/change a source of data for your configuration
 - easy to set a priority of sources to fetch data from (e.g., 1.`flags`, 2.`env`, 3.`default` or another order)
 - you can implement your custom provider
-- only `2` external dependencies
+- no external dependencies
 - complies with `12-factor app`
 
 # Quick start
@@ -117,7 +117,8 @@ Looks for `env` tag and tries to find an ENV variable with the name from the tag
         // ...
     }
 ```
-Name inside tag `env:"<name>"` must be unique for each field.
+Name inside tag `env:"<name>"` must be unique for each field and be in the UPPER register
+(`env_name` - bad, `ENV_NAME` - good).
 
 
 ### Flag provider

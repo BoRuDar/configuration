@@ -14,25 +14,19 @@ func TestConfigurator(t *testing.T) {
 	fileName := "./testdata/input.json"
 
 	// setting env variable
-	removeEnvKey, err := setEnv("AGE_ENV", "45")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	defer removeEnvKey()
+	t.Setenv("AGE_ENV", "45")
 
 	// defining a struct
 	cfg := struct {
 		Name     string `flag:"name"`
 		LastName string `default:"defaultLastName"`
-		Age      byte   `env:"AGE_ENV"    default:"-1"`
+		Age      byte   `env:"AGE_ENV"               default:"-1"`
 		BoolPtr  *bool  `default:"false"`
-
-		ObjPtr *struct {
+		ObjPtr   *struct {
 			F32       float32       `default:"32"`
 			StrPtr    *string       `default:"str_ptr_test"`
 			HundredMS time.Duration `default:"100ms"`
 		}
-
 		Obj struct {
 			IntPtr     *int16   `default:"123"`
 			Beta       int      `file_json:"inside.beta"   default:"24"`
@@ -76,7 +70,7 @@ func TestConfigurator(t *testing.T) {
 
 func TestConfigurator_Errors(t *testing.T) {
 	tests := map[string]struct {
-		input     interface{}
+		input     any
 		providers []Provider
 	}{
 		"empty providers": {
@@ -203,4 +197,22 @@ func TestConfigurator_NameCollision(t *testing.T) {
 func TestConfigurator_FailedProvider(t *testing.T) {
 	err := New(&struct{}{}, NewJSONFileProvider("doesn't exist")).InitValues()
 	assert(t, err.Error(), "cannot init [JSONFileProvider] provider: open doesn't exist: no such file or directory")
+}
+
+func Test_FromEnvAndDefault(t *testing.T) {
+	t.Setenv("AGE", "24")
+
+	type st struct {
+		Name string `env:"name"    default:"Alex"`
+		Age  int    `env:"AGE"     default:"42"`
+	}
+
+	cfg := st{}
+
+	if err := FromEnvAndDefault(&cfg); err != nil {
+		t.Fatal("unexpected err", err)
+	}
+
+	assert(t, cfg.Name, "Alex")
+	assert(t, cfg.Age, 24)
 }
