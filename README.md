@@ -181,7 +181,7 @@ For example, tag `file_json:"cache.retention"` will assume that you have this st
 
 
 ### Additional providers
-* [YAML files](https://github.com/BoRuDar/)
+* [YAML files](https://github.com/BoRuDar/configuration-yaml-file)
 
 
 # Contribution
