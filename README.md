@@ -176,3 +176,8 @@ For example, tag `file_json:"cache.retention"` will assume that you have this st
   }
 }
 ```
+
+
+### Contribution
+1. Open a feature request or a bug report in [issues](https://github.com/BoRuDar/configuration/issues)
+2. Fork and create a PR into `dev` branch
