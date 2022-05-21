@@ -34,7 +34,7 @@ func (flagProvider) Name() string {
 	return FlagProviderName
 }
 
-func (fp flagProvider) Init(ptr interface{}) (err error) {
+func (fp flagProvider) Init(ptr any) (err error) {
 	if err := fp.initFlagProvider(ptr); err != nil {
 		return err
 	}
@@ -68,7 +68,7 @@ type flagData struct {
 	usage      string
 }
 
-func (fp flagProvider) initFlagProvider(i interface{}) error {
+func (fp flagProvider) initFlagProvider(i any) error {
 	var (
 		t = reflect.TypeOf(i)
 		v = reflect.ValueOf(i)

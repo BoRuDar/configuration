@@ -20,7 +20,7 @@ func (envProvider) Name() string {
 	return EnvProviderName
 }
 
-func (envProvider) Init(_ interface{}) error {
+func (envProvider) Init(_ any) error {
 	return nil
 }
 

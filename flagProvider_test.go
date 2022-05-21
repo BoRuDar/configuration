@@ -80,7 +80,7 @@ func TestFlagProvider_WithDefault(t *testing.T) {
 
 func TestGetFlagData(t *testing.T) {
 	tests := map[string]struct {
-		input    interface{}
+		input    any
 		expected *flagData
 		hasErr   bool
 	}{
@@ -181,7 +181,7 @@ func TestFlagProvider_ErrNotAPointer(t *testing.T) {
 
 func TestFlagProvider_Errors(t *testing.T) {
 	testCases := map[string]struct {
-		obj           interface{}
+		obj           any
 		initErr       error
 		providerError error
 	}{

@@ -111,7 +111,7 @@ You can define a custom provider which should satisfy next interface:
 ```go
 type Provider interface {
     Name() string
-    Init(ptr interface{}) error
+    Init(ptr any) error
     Provide(field reflect.StructField, v reflect.Value) error
 }
 ```
