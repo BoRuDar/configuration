@@ -58,18 +58,23 @@ cfg := struct {
     }
 }{}
 
-configurator := New(
+configurator := configuration.New(
     &cfg,
-    // order of execution will be preserved:
-    NewFlagProvider(),             // 1st
-    NewEnvProvider(),              // 2nd
-    NewJSONFileProvider(fileName), // 3rd
-    NewDefaultProvider(),          // 4th
+    // order of execution will be preserved: 
+    configuration.NewFlagProvider(),             // 1st
+    configuration.NewEnvProvider(),              // 2nd 
+    configuration.NewJSONFileProvider(fileName), // 3rd 
+    configuration.NewDefaultProvider(),          // 4th
 )
 
 if err := configurator.InitValues(); err != nil {
     log.Fatalf("unexpected error: ", err)
 }
+```
+
+If you need only ENV variables and default values you can use a short helper func:
+```go
+err := configuration.FromEnvAndDefault(&cfg)
 ```
 
 
@@ -85,7 +90,19 @@ You can specify one or more providers. They will be executed in order of definit
 If provider set value successfully next ones will not be executed (if flag provider from the sample above found a value env and default providers are skipped). 
 The value of first successfully executed provider will be set.
 If none of providers found value - an application will be terminated.
-This behavior can be changed with `configurator.SetOnFailFn` method.
+This behavior can be changed with `configurator.SetOnFailFn` option:
+```go
+err := configuration.New(
+    &cfg,
+    configuration.NewEnvProvider(),
+    configuration.NewDefaultProvider()).
+    SetOptions(
+        configuration.OnFailFnOpt(func(err error) {
+            log.Println(err)
+        }),
+    ).InitValues()
+```
+
 
 ### Custom provider
 You can define a custom provider which should satisfy next interface:
