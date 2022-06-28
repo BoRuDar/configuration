@@ -16,9 +16,9 @@ Supported types:
 - `string`, `*string`, `[]string`, `[]*string`
 - `bool`, `*bool`, `[]bool`, `[]*bool`
 - `int`, `int8`, `int16`, `int32`, `int64` + slices of these types
-- `*int`, `*int8`, `*int16`, `*int32`, `*int64`
+- `*int`, `*int8`, `*int16`, `*int32`, `*int64` + slices of these types
 - `uint`, `uint8`, `uint16`, `uint32`, `uint64` + slices of these types
-- `*uint`, `*uint8`, `*uint16`, `*uint32`, `*uint64`
+- `*uint`, `*uint8`, `*uint16`, `*uint32`, `*uint64` + slices of these types
 - `float32`, `float64` + slices of these types
 - `*float32`, `*float64`
 - `time.Duration` from strings like `12ms`, `2s` etc.
