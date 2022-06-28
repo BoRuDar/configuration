@@ -16,6 +16,11 @@ func TestConfigurator(t *testing.T) {
 	// setting env variable
 	t.Setenv("AGE_ENV", "45")
 
+	expectedURLs := []string{
+		"http://localhost:3000",
+		"1.2.3.4:8080",
+	}
+
 	// defining a struct
 	cfg := struct {
 		Name     string `flag:"name"`
@@ -34,6 +39,7 @@ func TestConfigurator(t *testing.T) {
 			IntSlice   []int64  `default:"3; 4"`
 			unexported string   `xml:"ignored"`
 		}
+		URLs []*string `default:"http://localhost:3000;1.2.3.4:8080"`
 	}{}
 
 	configurator := New(
@@ -66,6 +72,10 @@ func TestConfigurator(t *testing.T) {
 	assert(t, []string{"one", "two"}, cfg.Obj.StrSlice)
 	assert(t, []int64{3, 4}, cfg.Obj.IntSlice)
 	assert(t, time.Millisecond*100, cfg.ObjPtr.HundredMS)
+
+	for i := range expectedURLs {
+		assert(t, expectedURLs[i], *cfg.URLs[i])
+	}
 }
 
 func TestConfigurator_Errors(t *testing.T) {

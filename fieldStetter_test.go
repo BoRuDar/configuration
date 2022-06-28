@@ -391,3 +391,37 @@ func TestSetValue_Unsupported(t *testing.T) {
 	err = setSlice(fieldType, fieldVal, testValue)
 	assert(t, "setSlice: unsupported type of slice item: struct", err.Error())
 }
+
+func TestSetValue_IntPtrSlice(t *testing.T) {
+	var testStr []*int
+	fieldType := reflect.TypeOf(&testStr).Elem()
+	fieldVal := reflect.ValueOf(&testStr).Elem()
+	testValue := "1;2;3"
+	ints := []int{1, 2, 3}
+	expected := []*int{&ints[0], &ints[1], &ints[2]}
+
+	err := setValue(fieldType, fieldVal, testValue)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !reflect.DeepEqual(expected, fieldVal.Interface()) {
+		t.Fatalf("\nexpected result: %+v \nbut got: %+v", expected, fieldVal.Interface())
+	}
+}
+
+func TestSetValue_IntPtrSlice_Err(t *testing.T) {
+	var testStr []*struct{}
+	fieldType := reflect.TypeOf(&testStr).Elem()
+	fieldVal := reflect.ValueOf(&testStr).Elem()
+	testValue := "1;2;4"
+
+	err := setValue(fieldType, fieldVal, testValue)
+	if err == nil {
+		t.Fatal("expected err but got nil")
+	}
+
+	if err.Error() != "setSlice: cannot set type [*struct {}] at index [0]" {
+		t.Fatalf("wrong error: %v", err)
+	}
+}

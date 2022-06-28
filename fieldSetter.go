@@ -109,6 +109,15 @@ func setSlice(t reflect.Type, v reflect.Value, val string) error {
 			slice.Index(i).SetBool(val)
 		}
 
+	case reflect.Pointer:
+		slice = reflect.MakeSlice(t, size, size)
+		for i := 0; i < size; i++ {
+			err := setPtrValue(slice.Index(i).Type(), slice.Index(i), items[i])
+			if err != nil {
+				return fmt.Errorf("setSlice: cannot set type [%s] at index [%d]", slice.Index(i).Type(), i)
+			}
+		}
+
 	default:
 		return fmt.Errorf("setSlice: unsupported type of slice item: %v", t.Elem().Kind().String())
 	}
