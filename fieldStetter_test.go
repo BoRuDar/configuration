@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	"net"
 	"reflect"
 	"strconv"
 	"testing"
@@ -424,4 +425,35 @@ func TestSetValue_IntPtrSlice_Err(t *testing.T) {
 	if err.Error() != "setSlice: cannot set type [*struct {}] at index [0]" {
 		t.Fatalf("wrong error: %v", err)
 	}
+}
+
+type cfg1 struct {
+	HostOne *IP `default:"127.0.0.1"`
+	HostTwo IP  `default:"127.0.0.2"`
+}
+
+type IP net.IP
+
+func (i *IP) SetField(_ reflect.StructField, val reflect.Value, valStr string) error {
+	r := IP(net.ParseIP(valStr))
+
+	if val.Kind() == reflect.Pointer {
+		val.Set(reflect.ValueOf(&r))
+	} else {
+		val.Set(reflect.ValueOf(r))
+	}
+
+	return nil
+}
+
+func Test_CustomFieldSetter(t *testing.T) {
+	var cfg cfg1
+
+	err := FromEnvAndDefault(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log(net.IP(*cfg.HostOne).String())
+	t.Log(net.IP(cfg.HostTwo).String())
 }

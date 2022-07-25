@@ -106,8 +106,7 @@ func (c *Configurator) applyProviders(field reflect.StructField, v reflect.Value
 	}
 
 	for _, provider := range c.providers {
-		err := provider.Provide(field, v)
-		if err == nil {
+		if provider.Provide(field, v) == nil {
 			return
 		}
 	}
