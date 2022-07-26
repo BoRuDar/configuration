@@ -4,6 +4,7 @@ import (
 	"net"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 )
@@ -430,6 +431,7 @@ func TestSetValue_IntPtrSlice_Err(t *testing.T) {
 type testCfgSetField struct {
 	HostOne *ipTest `default:"127.0.0.1"`
 	HostTwo ipTest  `default:"127.0.0.2"`
+	Hosts   ipsTest `default:"10.0.0.1,10.0.0.2"`
 	NameOne string  `default:"one"`
 	NameTwo *string `default:"two"`
 }
@@ -443,6 +445,29 @@ func (it *ipTest) SetField(_ reflect.StructField, val reflect.Value, valStr stri
 		val.Set(reflect.ValueOf(&i))
 	} else {
 		val.Set(reflect.ValueOf(i))
+	}
+
+	return nil
+}
+
+type ipsTest []ipTest
+
+func (it *ipsTest) SetField(sf reflect.StructField, val reflect.Value, valStr string) error {
+	var (
+		strIPs = strings.Split(valStr, ",")
+		ips    = make(ipsTest, len(strIPs))
+	)
+
+	for i, ip := range strIPs {
+		if err := ips[i].SetField(sf, reflect.ValueOf(&ips[i]).Elem(), ip); err != nil {
+			return err
+		}
+	}
+
+	if val.Kind() == reflect.Pointer {
+		val.Set(reflect.ValueOf(&ips))
+	} else {
+		val.Set(reflect.ValueOf(ips))
 	}
 
 	return nil
@@ -474,4 +499,8 @@ func Test_CustomFieldSetter(t *testing.T) {
 	assert(t, "127.0.0.2", net.IP(cfg.HostTwo).String())
 	assert(t, "one", cfg.NameOne)
 	assert(t, "two", *cfg.NameTwo)
+	assert(t, ipsTest([]ipTest{
+		ipTest(net.ParseIP("10.0.0.1")),
+		ipTest(net.ParseIP("10.0.0.2")),
+	}), cfg.Hosts)
 }
