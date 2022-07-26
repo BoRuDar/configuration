@@ -427,33 +427,51 @@ func TestSetValue_IntPtrSlice_Err(t *testing.T) {
 	}
 }
 
-type cfg1 struct {
-	HostOne *IP `default:"127.0.0.1"`
-	HostTwo IP  `default:"127.0.0.2"`
+type testCfgSetField struct {
+	HostOne *ipTest `default:"127.0.0.1"`
+	HostTwo ipTest  `default:"127.0.0.2"`
+	NameOne string  `default:"one"`
+	NameTwo *string `default:"two"`
 }
 
-type IP net.IP
+type ipTest net.IP
 
-func (i *IP) SetField(_ reflect.StructField, val reflect.Value, valStr string) error {
-	r := IP(net.ParseIP(valStr))
+func (it *ipTest) SetField(_ reflect.StructField, val reflect.Value, valStr string) error {
+	i := ipTest(net.ParseIP(valStr))
 
 	if val.Kind() == reflect.Pointer {
-		val.Set(reflect.ValueOf(&r))
+		val.Set(reflect.ValueOf(&i))
 	} else {
-		val.Set(reflect.ValueOf(r))
+		val.Set(reflect.ValueOf(i))
+	}
+
+	return nil
+}
+
+type stringTest string
+
+func (st *stringTest) SetField(_ reflect.StructField, val reflect.Value, valStr string) error {
+	s := stringTest(valStr)
+
+	if val.Kind() == reflect.Pointer {
+		val.Set(reflect.ValueOf(&s))
+	} else {
+		val.Set(reflect.ValueOf(s))
 	}
 
 	return nil
 }
 
 func Test_CustomFieldSetter(t *testing.T) {
-	var cfg cfg1
+	var cfg testCfgSetField
 
 	err := FromEnvAndDefault(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	t.Log(net.IP(*cfg.HostOne).String())
-	t.Log(net.IP(cfg.HostTwo).String())
+	assert(t, "127.0.0.1", net.IP(*cfg.HostOne).String())
+	assert(t, "127.0.0.2", net.IP(cfg.HostTwo).String())
+	assert(t, "one", cfg.NameOne)
+	assert(t, "two", *cfg.NameTwo)
 }
