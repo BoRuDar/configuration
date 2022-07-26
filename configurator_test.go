@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	"net"
 	"os"
 	"testing"
 	"time"
@@ -39,7 +40,8 @@ func TestConfigurator(t *testing.T) {
 			IntSlice   []int64  `default:"3; 4"`
 			unexported string   `xml:"ignored"`
 		}
-		URLs []*string `default:"http://localhost:3000;1.2.3.4:8080"`
+		URLs   []*string `default:"http://localhost:3000;1.2.3.4:8080"`
+		HostIP ipTest    `default:"127.0.0.3"`
 	}{}
 
 	configurator := New(
@@ -72,6 +74,8 @@ func TestConfigurator(t *testing.T) {
 	assert(t, []string{"one", "two"}, cfg.Obj.StrSlice)
 	assert(t, []int64{3, 4}, cfg.Obj.IntSlice)
 	assert(t, time.Millisecond*100, cfg.ObjPtr.HundredMS)
+
+	assert(t, net.ParseIP("127.0.0.3"), net.IP(cfg.HostIP))
 
 	for i := range expectedURLs {
 		assert(t, expectedURLs[i], *cfg.URLs[i])

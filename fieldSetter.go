@@ -10,12 +10,27 @@ import (
 
 const sliceSeparator = ";"
 
-// SetField sets field with `valStr` value (converts to the proper type beforehand)
-func SetField(field reflect.StructField, v reflect.Value, valStr string) error {
-	if v.Kind() == reflect.Ptr {
-		return setPtrValue(field.Type, v, valStr)
+type FieldSetter interface {
+	SetField(field reflect.StructField, val reflect.Value, valStr string) error
+}
+
+// SetField sets field with `valStr` value (and converts it into the proper type beforehand)
+func SetField(field reflect.StructField, val reflect.Value, valStr string) error {
+	if val.CanInterface() {
+		if fs, ok := val.Addr().Interface().(FieldSetter); ok {
+			return fs.SetField(field, val, valStr)
+		}
+
+		if fs, ok := val.Interface().(FieldSetter); ok {
+			return fs.SetField(field, val, valStr)
+		}
 	}
-	return setValue(field.Type, v, valStr)
+
+	if val.Kind() == reflect.Pointer {
+		return setPtrValue(field.Type, val, valStr)
+	}
+
+	return setValue(field.Type, val, valStr)
 }
 
 func setValue(t reflect.Type, v reflect.Value, val string) (err error) {

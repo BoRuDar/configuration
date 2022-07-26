@@ -1,8 +1,10 @@
 package configuration
 
 import (
+	"net"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 )
@@ -424,4 +426,81 @@ func TestSetValue_IntPtrSlice_Err(t *testing.T) {
 	if err.Error() != "setSlice: cannot set type [*struct {}] at index [0]" {
 		t.Fatalf("wrong error: %v", err)
 	}
+}
+
+type testCfgSetField struct {
+	HostOne *ipTest `default:"127.0.0.1"`
+	HostTwo ipTest  `default:"127.0.0.2"`
+	Hosts   ipsTest `default:"10.0.0.1,10.0.0.2"`
+	NameOne string  `default:"one"`
+	NameTwo *string `default:"two"`
+}
+
+type ipTest net.IP
+
+func (it *ipTest) SetField(_ reflect.StructField, val reflect.Value, valStr string) error {
+	i := ipTest(net.ParseIP(valStr))
+
+	if val.Kind() == reflect.Pointer {
+		val.Set(reflect.ValueOf(&i))
+	} else {
+		val.Set(reflect.ValueOf(i))
+	}
+
+	return nil
+}
+
+type ipsTest []ipTest
+
+func (it *ipsTest) SetField(sf reflect.StructField, val reflect.Value, valStr string) error {
+	var (
+		strIPs = strings.Split(valStr, ",")
+		ips    = make(ipsTest, len(strIPs))
+	)
+
+	for i, ip := range strIPs {
+		if err := ips[i].SetField(sf, reflect.ValueOf(&ips[i]).Elem(), ip); err != nil {
+			return err
+		}
+	}
+
+	if val.Kind() == reflect.Pointer {
+		val.Set(reflect.ValueOf(&ips))
+	} else {
+		val.Set(reflect.ValueOf(ips))
+	}
+
+	return nil
+}
+
+type stringTest string
+
+func (st *stringTest) SetField(_ reflect.StructField, val reflect.Value, valStr string) error {
+	s := stringTest(valStr)
+
+	if val.Kind() == reflect.Pointer {
+		val.Set(reflect.ValueOf(&s))
+	} else {
+		val.Set(reflect.ValueOf(s))
+	}
+
+	return nil
+}
+
+func Test_CustomFieldSetter(t *testing.T) {
+	var cfg testCfgSetField
+
+	err := FromEnvAndDefault(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert(t, "127.0.0.1", net.IP(*cfg.HostOne).String())
+	assert(t, "127.0.0.2", net.IP(cfg.HostTwo).String())
+	assert(t, "one", cfg.NameOne)
+	assert(t, "two", *cfg.NameTwo)
+	assert(t, ipsTest([]ipTest{
+		ipTest(net.ParseIP("10.0.0.1")),
+		ipTest(net.ParseIP("10.0.0.2")),
+	}), cfg.Hosts)
 }

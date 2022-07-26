@@ -20,7 +20,7 @@ Supported types:
 - `uint`, `uint8`, `uint16`, `uint32`, `uint64` + slices of these types
 - `*uint`, `*uint8`, `*uint16`, `*uint32`, `*uint64` + slices of these types
 - `float32`, `float64` + slices of these types
-- `*float32`, `*float64`
+- `*float32`, `*float64` + slices of these types
 - `time.Duration` from strings like `12ms`, `2s` etc.
 - embedded structs and pointers to structs
 
@@ -113,6 +113,30 @@ type Provider interface {
     Name() string
     Init(ptr any) error
     Provide(field reflect.StructField, v reflect.Value) error
+}
+```
+
+### FieldSetter interface
+You can define how to set fields with any custom types: 
+```go
+type FieldSetter interface {
+	SetField(field reflect.StructField, val reflect.Value, valStr string) error
+}
+```
+Example:
+```go
+type ipTest net.IP
+
+func (it *ipTest) SetField(_ reflect.StructField, val reflect.Value, valStr string) error {
+	i := ipTest(net.ParseIP(valStr))
+
+	if val.Kind() == reflect.Pointer {
+		val.Set(reflect.ValueOf(&i))
+	} else {
+		val.Set(reflect.ValueOf(i))
+	}
+
+	return nil
 }
 ```
 
