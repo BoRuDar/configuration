@@ -1,10 +1,7 @@
 name: Review
-on:
-  push:
-    branches-ignore:
-      - master
+on: [pull_request]
 jobs:
-  golangci-lint:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code into the Go module directory
@@ -12,3 +9,7 @@ jobs:
 
       - name: golangci-lint
         uses: reviewdog/action-golangci-lint@v2.1.5
+        with:
+          fail_on_error: true
+          reporter: github-pr-review
+          github_token: ${{ secrets.github_token }}
