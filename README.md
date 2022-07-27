@@ -118,30 +118,6 @@ type Provider interface {
 }
 ```
 
-### FieldSetter interface
-You can define how to set fields with any custom types: 
-```go
-type FieldSetter interface {
-	SetField(field reflect.StructField, val reflect.Value, valStr string) error
-}
-```
-Example:
-```go
-type ipTest net.IP
-
-func (it *ipTest) SetField(_ reflect.StructField, val reflect.Value, valStr string) error {
-	i := ipTest(net.ParseIP(valStr))
-
-	if val.Kind() == reflect.Pointer {
-		val.Set(reflect.ValueOf(&i))
-	} else {
-		val.Set(reflect.ValueOf(i))
-	}
-
-	return nil
-}
-```
-
 ### Default provider
 Looks for `default` tag and set value from it:
 ```go
@@ -205,9 +181,33 @@ For example, tag `file_json:"cache.retention"` will assume that you have this st
 }
 ```
 
-
 ### Additional providers
 * [YAML files](https://github.com/BoRuDar/configuration-yaml-file)
+
+
+## FieldSetter interface
+You can define how to set fields with any custom types: 
+```go
+type FieldSetter interface {
+	SetField(field reflect.StructField, val reflect.Value, valStr string) error
+}
+```
+Example:
+```go
+type ipTest net.IP
+
+func (it *ipTest) SetField(_ reflect.StructField, val reflect.Value, valStr string) error {
+	i := ipTest(net.ParseIP(valStr))
+
+	if val.Kind() == reflect.Pointer {
+		val.Set(reflect.ValueOf(&i))
+	} else {
+		val.Set(reflect.ValueOf(i))
+	}
+
+	return nil
+}
+```
 
 
 # Contribution
