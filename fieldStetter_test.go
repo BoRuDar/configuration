@@ -375,7 +375,7 @@ func TestSetValue_EmptySlice(t *testing.T) {
 	testValue := " "
 
 	err := setValue(fieldType, fieldVal, testValue)
-	assert(t, "setSlice: got emtpy slice", err.Error())
+	assert(t, "setSlice: got empty slice", err.Error())
 }
 
 func TestSetValue_Unsupported(t *testing.T) {

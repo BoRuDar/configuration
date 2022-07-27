@@ -49,7 +49,7 @@ type FlagSet interface {
 }
 
 // WithFlagSet allows the flag.FlagSet to be provided to NewFlagProvider.
-// This allows compatability with other flag parsing utilities.
+// This allows compatibility with other flag parsing utilities.
 func WithFlagSet(s FlagSet) FlagProviderOption {
 	return func(fp *flagProvider) {
 		fp.flagSet = s

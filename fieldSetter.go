@@ -87,7 +87,7 @@ func setSlice(t reflect.Type, v reflect.Value, val string) error {
 	)
 
 	if size == 0 {
-		return fmt.Errorf("setSlice: got emtpy slice")
+		return fmt.Errorf("setSlice: got empty slice")
 	}
 
 	switch t.Elem().Kind() {
