@@ -1,4 +1,4 @@
-[![Go Report Card](https://goreportcard.com/badge/github.com/borudar/configuration)](https://goreportcard.com/report/github.com/borudar/configuration)
+[![Go Report Card](https://goreportcard.com/badge/github.com/BoRuDar/configuration/v4)](https://goreportcard.com/report/github.com/BoRuDar/configuration/v4)
 [![codecov](https://codecov.io/gh/BoRuDar/configuration/branch/master/graph/badge.svg)](https://codecov.io/gh/BoRuDar/configuration)
 ![Go](https://github.com/BoRuDar/configuration/workflows/Go/badge.svg)
 [![GoDoc](https://godoc.org/github.com/BoRuDar/configuration?status.png)](https://godoc.org/github.com/BoRuDar/configuration/v4)
