@@ -143,9 +143,8 @@ func setSlice(t reflect.Type, v reflect.Value, val string) error {
 
 func setPtrValue(t reflect.Type, v reflect.Value, val string) (err error) {
 	switch t.Elem().Name() {
-	case reflect.Int.String(): // doesn't care about 32bit systems
-		if i64, err := strconv.ParseInt(val, 10, 64); err == nil {
-			i := int(i64)
+	case reflect.Int.String():
+		if i, err := strconv.Atoi(val); err == nil {
 			v.Set(reflect.ValueOf(&i))
 		}
 	case reflect.Int8.String():
@@ -168,9 +167,9 @@ func setPtrValue(t reflect.Type, v reflect.Value, val string) (err error) {
 			v.Set(reflect.ValueOf(&i64))
 		}
 
-	case reflect.Uint.String(): // doesn't care about 32bit systems
-		if ui64, err := strconv.ParseUint(val, 10, 64); err == nil {
-			ui := uint(ui64)
+	case reflect.Uint.String():
+		var ui uint
+		if _, err := fmt.Sscan(val, &ui); err == nil {
 			v.Set(reflect.ValueOf(&ui))
 		}
 	case reflect.Uint8.String():
