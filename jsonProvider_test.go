@@ -107,6 +107,6 @@ func TestFileProvider_Init(t *testing.T) {
 	assert(t, "cannot init [JSONFileProvider] provider: file must have .json extension", err.Error())
 
 	err = New(i, NewJSONFileProvider("./testdata/input.json")).SetOptions(OnFailFnOpt(func(err error) {
-		assert(t, "configurator: field [Test] with tags [file_json:\"void.\"] cannot be set", err.Error())
+		assert(t, "configurator: field [Test] with tags [file_json:\"void.\"] cannot be set. Last Provider error: JSONFileProvider: findValStrByPath returns empty value", err.Error())
 	})).InitValues()
 }

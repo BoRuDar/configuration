@@ -105,13 +105,14 @@ func (c *Configurator) applyProviders(field reflect.StructField, v reflect.Value
 		return
 	}
 
+	var lastErr error
 	for _, provider := range c.providers {
-		if provider.Provide(field, v) == nil {
+		if lastErr = provider.Provide(field, v); lastErr == nil {
 			return
 		}
 	}
 
-	c.onErrorFn(fmt.Errorf("configurator: field [%s] with tags [%v] cannot be set", field.Name, field.Tag))
+	c.onErrorFn(fmt.Errorf("configurator: field [%s] with tags [%v] cannot be set. Last Provider error: %s", field.Name, field.Tag, lastErr))
 }
 
 // FromEnvAndDefault is a shortcut for `New(cfg, NewEnvProvider(), NewDefaultProvider()).InitValues()`.

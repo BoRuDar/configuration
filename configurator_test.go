@@ -153,7 +153,7 @@ func TestSetOnFailFn(t *testing.T) {
 		Name string `default:"test_name"`
 	}{}
 	onFailFn := func(err error) {
-		if err != nil && err.Error() != "configurator: field [Name] with tags [default:\"test_name\"] cannot be set" {
+		if err != nil && err.Error() != "configurator: field [Name] with tags [default:\"test_name\"] cannot be set. Last Provider error: no tag" {
 			t.Fatalf("unexpected error: %v", err)
 		}
 	}
