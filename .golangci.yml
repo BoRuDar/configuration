@@ -68,7 +68,7 @@ linters:
 #    - inamedparam
 #    - ineffassign
 #    - interfacebloat
-#    - interfacer
+    - interfacer
 #    - intrange
 #    - ireturn
     - lll
