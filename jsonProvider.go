@@ -15,6 +15,7 @@ const JSONFileProviderName = `JSONFileProvider`
 var ErrFileMustHaveJSONExt = errors.New("file must have .json extension")
 
 // NewJSONFileProvider creates new provider which reads values from JSON files.
+// nolint:revive
 func NewJSONFileProvider(fileName string) (fp *fileProvider) {
 	return &fileProvider{fileName: fileName}
 }

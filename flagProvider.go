@@ -17,6 +17,7 @@ const (
 type FlagProviderOption func(*flagProvider)
 
 // NewFlagProvider creates a new provider to fetch data from flags like: --flag_name some_value
+// nolint:revive
 func NewFlagProvider(opts ...FlagProviderOption) flagProvider {
 	fp := flagProvider{
 		flagsValues: map[string]func() *string{},

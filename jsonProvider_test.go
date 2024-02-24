@@ -32,7 +32,7 @@ func TestJSONFileProvider_json(t *testing.T) {
 	assert(t, expected, testObj)
 }
 
-// nolint:errchkjson
+// nolint:errchkjson,musttag
 func TestFindValStrByPath(t *testing.T) {
 	type embedded struct {
 		Beta int `file_json:"inside.beta"`
