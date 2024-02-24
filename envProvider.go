@@ -10,6 +10,7 @@ import (
 const EnvProviderName = `EnvProvider`
 
 // NewEnvProvider creates provider which sets values from ENV variables (gets variable name from `env` tag)
+// nolint:revive
 func NewEnvProvider() envProvider {
 	return envProvider{}
 }

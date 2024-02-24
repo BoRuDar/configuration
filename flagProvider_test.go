@@ -1,6 +1,8 @@
+// nolint:dupl,goconst
 package configuration
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -174,7 +176,7 @@ func TestFlagProvider_ErrNotAPointer(t *testing.T) {
 	testObj := testStruct{}
 	os.Args = []string{""}
 
-	if err := NewFlagProvider().Init(testObj); err != ErrNotAPointer {
+	if err := NewFlagProvider().Init(testObj); !errors.Is(err, ErrNotAPointer) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

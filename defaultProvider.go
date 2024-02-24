@@ -8,6 +8,7 @@ import (
 const DefaultProviderName = `DefaultProvider`
 
 // NewDefaultProvider creates new provider which sets values from `default` tag
+// nolint:revive
 func NewDefaultProvider() defaultProvider {
 	return defaultProvider{}
 }

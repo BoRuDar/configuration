@@ -10,6 +10,7 @@ import (
 
 const sliceSeparator = ";"
 
+// FieldSetter interface
 type FieldSetter interface {
 	SetField(field reflect.StructField, val reflect.Value, valStr string) error
 }
@@ -33,7 +34,9 @@ func SetField(field reflect.StructField, val reflect.Value, valStr string) error
 	return setValue(field.Type, val, valStr)
 }
 
-func setValue(t reflect.Type, v reflect.Value, val string) (err error) {
+func setValue(t reflect.Type, v reflect.Value, val string) error {
+	var err error
+
 	switch t.Kind() {
 	case reflect.String:
 		v.SetString(val)
@@ -63,7 +66,8 @@ func setValue(t reflect.Type, v reflect.Value, val string) (err error) {
 	default:
 		err = fmt.Errorf("setValue: unsupported type: %v", v.Kind().String())
 	}
-	return
+
+	return err
 }
 
 func setInt64(v reflect.Value, val string) {
@@ -79,6 +83,7 @@ func setInt64(v reflect.Value, val string) {
 	v.SetInt(i)
 }
 
+// nolint:cyclop
 func setSlice(t reflect.Type, v reflect.Value, val string) error {
 	var (
 		slice reflect.Value
@@ -141,7 +146,10 @@ func setSlice(t reflect.Type, v reflect.Value, val string) error {
 	return nil
 }
 
-func setPtrValue(t reflect.Type, v reflect.Value, val string) (err error) {
+// nolint:cyclop
+func setPtrValue(t reflect.Type, v reflect.Value, val string) error {
+	var err error
+
 	switch t.Elem().Name() {
 	case reflect.Int.String():
 		if i, err := strconv.Atoi(val); err == nil {
@@ -214,7 +222,8 @@ func setPtrValue(t reflect.Type, v reflect.Value, val string) (err error) {
 	default:
 		err = fmt.Errorf("setPtrValue: unsupported type: %v", t.Kind().String())
 	}
-	return
+
+	return err
 }
 
 func splitIntoSlice(val string) []string {
