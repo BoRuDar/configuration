@@ -31,14 +31,14 @@ func TestConfigurator(t *testing.T) {
 		ObjPtr   *struct {
 			F32       float32       `default:"32"`
 			StrPtr    *string       `default:"str_ptr_test"`
-			HundredMS time.Duration `default:"100ms"`
+			HundredMS time.Duration `default:"100ms"` // nolint:stylecheck
 		}
 		Obj struct {
 			IntPtr     *int16   `default:"123"`
 			Beta       int      `file_json:"inside.beta"   default:"24"`
 			StrSlice   []string `default:"one;two"`
 			IntSlice   []int64  `default:"3; 4"`
-			unexported string   `xml:"ignored"`
+			unexported string   `xml:"ignored"` // nolint:govet
 		}
 		URLs   []*string `default:"http://localhost:3000;1.2.3.4:8080"`
 		HostIP ipTest    `default:"127.0.0.3"`

@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -44,8 +45,8 @@ func (fp flagProvider) Init(ptr any) (err error) {
 
 // FlagSet is the part of flag.FlagSet that NewFlagProvider uses
 type FlagSet interface {
-	Parse([]string) error
-	String(string, string, string) *string
+	Parse(arguments []string) error
+	String(name string, value string, usage string) *string
 }
 
 // WithFlagSet allows the flag.FlagSet to be provided to NewFlagProvider.
@@ -96,7 +97,7 @@ func (fp flagProvider) initFlagProvider(i any) error {
 			continue
 		}
 
-		if err := fp.setFlagCallbacks(tField); err != nil && err != ErrNoTag { // 'flag' tag is not set for struct field
+		if err := fp.setFlagCallbacks(tField); err != nil && !errors.Is(err, ErrNoTag) { // 'flag' tag is not set for struct field
 			return err
 		}
 	}

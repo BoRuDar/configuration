@@ -32,6 +32,7 @@ func TestJSONFileProvider_json(t *testing.T) {
 	assert(t, expected, testObj)
 }
 
+// nolint:errchkjson
 func TestFindValStrByPath(t *testing.T) {
 	type embedded struct {
 		Beta int `file_json:"inside.beta"`
@@ -59,6 +60,7 @@ func TestFindValStrByPath(t *testing.T) {
 	}{
 		{
 			name:         "empty path",
+			input:        nil,
 			path:         nil,
 			expectedStr:  "",
 			expectedBool: false,
@@ -109,4 +111,6 @@ func TestFileProvider_Init(t *testing.T) {
 	err = New(i, NewJSONFileProvider("./testdata/input.json")).SetOptions(OnFailFnOpt(func(err error) {
 		assert(t, "configurator: field [Test] with tags [file_json:\"void.\"] cannot be set. Last Provider error: JSONFileProvider: findValStrByPath returns empty value", err.Error())
 	})).InitValues()
+
+	assert(t, nil, err)
 }

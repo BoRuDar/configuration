@@ -8,7 +8,7 @@ linters:
   enable-all: true
   # Disable specific linter
   # https://golangci-lint.run/usage/linters/#disabled-by-default
-#  disable:
+  disable:
 #    - asasalint
 #    - asciicheck
 #    - bidichk
@@ -17,7 +17,7 @@ linters:
 #    - contextcheck
 #    - copyloopvar
 #    - cyclop
-#    - deadcode
+    - deadcode
 #    - decorder
 #    - depguard
 #    - dogsled
@@ -30,12 +30,12 @@ linters:
 #    - errorlint
 #    - execinquery
 #    - exhaustive
-#    - exhaustivestruct
-#    - exhaustruct
+    - exhaustivestruct
+    - exhaustruct
 #    - exportloopref
 #    - forbidigo
 #    - forcetypeassert
-#    - funlen
+    - funlen
 #    - gci
 #    - ginkgolinter
 #    - gocheckcompilerdirectives
@@ -46,14 +46,14 @@ linters:
 #    - goconst
 #    - gocritic
 #    - gocyclo
-#    - godot
+    - godot
 #    - godox
-#    - goerr113
+    - goerr113
 #    - gofmt
 #    - gofumpt
 #    - goheader
 #    - goimports
-#    - golint
+    - golint
 #    - gomnd
 #    - gomoddirectives
 #    - gomodguard
@@ -63,7 +63,7 @@ linters:
 #    - gosmopolitan
 #    - govet
 #    - grouper
-#    - ifshort
+    - ifshort
 #    - importas
 #    - inamedparam
 #    - ineffassign
@@ -71,11 +71,11 @@ linters:
 #    - interfacer
 #    - intrange
 #    - ireturn
-#    - lll
+    - lll
 #    - loggercheck
 #    - maintidx
 #    - makezero
-#    - maligned
+    - maligned
 #    - mirror
 #    - misspell
 #    - musttag
@@ -83,14 +83,14 @@ linters:
 #    - nestif
 #    - nilerr
 #    - nilnil
-#    - nlreturn
+    - nlreturn
 #    - noctx
-#    - nolintlint
-#    - nonamedreturns
-#    - nosnakecase
+    - nolintlint
+    - nonamedreturns
+    - nosnakecase
 #    - nosprintfhostport
 #    - paralleltest
-#    - perfsprint
+    - perfsprint
 #    - prealloc
 #    - predeclared
 #    - promlinter
@@ -98,30 +98,30 @@ linters:
 #    - reassign
 #    - revive
 #    - rowserrcheck
-#    - scopelint
+    - scopelint
 #    - sloglint
 #    - spancheck
 #    - sqlclosecheck
 #    - staticcheck
-#    - structcheck
+    - structcheck
 #    - stylecheck
-#    - tagalign
+    - tagalign
 #    - tagliatelle
 #    - tenv
 #    - testableexamples
 #    - testifylint
-#    - testpackage
+    - testpackage
 #    - thelper
 #    - tparallel
 #    - typecheck
 #    - unconvert
-#    - unparam
+    - unparam
 #    - unused
 #    - usestdlibvars
-#    - varcheck
-#    - varnamelen
+    - varcheck
+    - varnamelen
 #    - wastedassign
 #    - whitespace
 #    - wrapcheck
-#    - wsl
+    - wsl
 #    - zerologlint

@@ -1,3 +1,4 @@
+// nolint:dupl,goconst
 package configuration
 
 import (
@@ -468,20 +469,6 @@ func (it *ipsTest) SetField(sf reflect.StructField, val reflect.Value, valStr st
 		val.Set(reflect.ValueOf(&ips))
 	} else {
 		val.Set(reflect.ValueOf(ips))
-	}
-
-	return nil
-}
-
-type stringTest string
-
-func (st *stringTest) SetField(_ reflect.StructField, val reflect.Value, valStr string) error {
-	s := stringTest(valStr)
-
-	if val.Kind() == reflect.Pointer {
-		val.Set(reflect.ValueOf(&s))
-	} else {
-		val.Set(reflect.ValueOf(s))
 	}
 
 	return nil

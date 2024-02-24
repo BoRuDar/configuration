@@ -60,7 +60,7 @@ func (c *Configurator) InitValues() error {
 		c.registeredTags[p.Name()] = struct{}{}
 
 		if err := p.Init(c.configPtr); err != nil {
-			return fmt.Errorf("cannot init [%s] provider: %v", p.Name(), err)
+			return fmt.Errorf("cannot init [%s] provider: %w", p.Name(), err)
 		}
 	}
 
@@ -112,7 +112,7 @@ func (c *Configurator) applyProviders(field reflect.StructField, v reflect.Value
 		}
 	}
 
-	c.onErrorFn(fmt.Errorf("configurator: field [%s] with tags [%v] cannot be set. Last Provider error: %s", field.Name, field.Tag, lastErr))
+	c.onErrorFn(fmt.Errorf("configurator: field [%s] with tags [%v] cannot be set. Last Provider error: %w", field.Name, field.Tag, lastErr))
 }
 
 // FromEnvAndDefault is a shortcut for `New(cfg, NewEnvProvider(), NewDefaultProvider()).InitValues()`.
