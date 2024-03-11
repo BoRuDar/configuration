@@ -19,11 +19,11 @@ type FieldSetter interface {
 func SetField(field reflect.StructField, val reflect.Value, valStr string) error {
 	if val.CanInterface() {
 		if fs, ok := val.Addr().Interface().(FieldSetter); ok {
-			return fs.SetField(field, val, valStr)
+			return fs.SetField(field, val, valStr) // nolint:wrapcheck
 		}
 
 		if fs, ok := val.Interface().(FieldSetter); ok {
-			return fs.SetField(field, val, valStr)
+			return fs.SetField(field, val, valStr) // nolint:wrapcheck
 		}
 	}
 

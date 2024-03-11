@@ -210,7 +210,7 @@ func TestConfigurator_NameCollision(t *testing.T) {
 
 func TestConfigurator_FailedProvider(t *testing.T) {
 	err := New(&struct{}{}, NewJSONFileProvider("doesn't exist")).InitValues()
-	assert(t, err.Error(), "cannot init [JSONFileProvider] provider: open doesn't exist: no such file or directory")
+	assert(t, "cannot init [JSONFileProvider] provider: JSONFileProvider.Init: open doesn't exist: no such file or directory", err.Error())
 }
 
 func Test_FromEnvAndDefault(t *testing.T) {

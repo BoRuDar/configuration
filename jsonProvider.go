@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"reflect"
 	"strings"
@@ -15,40 +15,43 @@ const JSONFileProviderName = `JSONFileProvider`
 var ErrFileMustHaveJSONExt = errors.New("file must have .json extension")
 
 // NewJSONFileProvider creates new provider which reads values from JSON files.
-// nolint:revive
-func NewJSONFileProvider(fileName string) (fp *fileProvider) {
-	return &fileProvider{fileName: fileName}
+func NewJSONFileProvider(fileName string) (fp *FileProvider) {
+	return &FileProvider{fileName: fileName}
 }
 
-type fileProvider struct {
+type FileProvider struct {
 	fileName string
 	fileData any
 }
 
-func (fileProvider) Name() string {
+func (fp *FileProvider) Name() string {
 	return JSONFileProviderName
 }
 
-func (fp *fileProvider) Init(_ any) error {
+func (fp *FileProvider) Init(_ any) error {
 	file, err := os.Open(fp.fileName)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s.Init: %w", JSONFileProviderName, err)
 	}
 	defer file.Close()
 
-	b, err := ioutil.ReadAll(file)
+	b, err := io.ReadAll(file)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s.Init: %w", JSONFileProviderName, err)
 	}
 
 	if !strings.HasSuffix(strings.ToLower(fp.fileName), ".json") {
 		return ErrFileMustHaveJSONExt
 	}
 
-	return json.Unmarshal(b, &fp.fileData)
+	if err := json.Unmarshal(b, &fp.fileData); err != nil {
+		return fmt.Errorf("%s.Init: %w", JSONFileProviderName, err)
+	}
+
+	return nil
 }
 
-func (fp fileProvider) Provide(field reflect.StructField, v reflect.Value) error {
+func (fp *FileProvider) Provide(field reflect.StructField, v reflect.Value) error {
 	path := field.Tag.Get("file_json")
 	if len(path) == 0 {
 		// field doesn't have a proper tag

@@ -36,12 +36,16 @@ func (flagProvider) Name() string {
 	return FlagProviderName
 }
 
-func (fp flagProvider) Init(ptr any) (err error) {
+func (fp flagProvider) Init(ptr any) error {
 	if err := fp.initFlagProvider(ptr); err != nil {
 		return err
 	}
 
-	return fp.flagSet.Parse(os.Args[1:])
+	if err := fp.flagSet.Parse(os.Args[1:]); err != nil {
+		return fmt.Errorf("%s.Init: %w", FlagProviderName, err)
+	}
+
+	return nil
 }
 
 // FlagSet is the part of flag.FlagSet that NewFlagProvider uses
@@ -70,12 +74,13 @@ type flagData struct {
 	usage      string
 }
 
-func (fp flagProvider) initFlagProvider(i any) error {
+func (fp flagProvider) initFlagProvider(ptr any) error {
 	var (
-		t = reflect.TypeOf(i)
-		v = reflect.ValueOf(i)
+		t = reflect.TypeOf(ptr)
+		v = reflect.ValueOf(ptr)
 	)
 
+	// nolint:exhaustive
 	switch t.Kind() {
 	case reflect.Ptr:
 		t = t.Elem()
