@@ -74,12 +74,13 @@ type flagData struct {
 	usage      string
 }
 
-func (fp flagProvider) initFlagProvider(i any) error {
+func (fp flagProvider) initFlagProvider(ptr any) error {
 	var (
-		t = reflect.TypeOf(i)
-		v = reflect.ValueOf(i)
+		t = reflect.TypeOf(ptr)
+		v = reflect.ValueOf(ptr)
 	)
 
+	// nolint:exhaustive
 	switch t.Kind() {
 	case reflect.Ptr:
 		t = t.Elem()
