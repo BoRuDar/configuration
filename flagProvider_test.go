@@ -234,3 +234,30 @@ func TestFlagProvider_Errors(t *testing.T) {
 		})
 	}
 }
+
+type _flagSetMock struct {
+	err    error
+	result string
+}
+
+func (f *_flagSetMock) Parse(arguments []string) error {
+	return f.err
+}
+
+func (f *_flagSetMock) String(name string, value string, usage string) *string {
+	return &f.result
+}
+
+func TestFlagProvider_CustomFlagSetError(t *testing.T) {
+	type testStruct struct {
+		Name string `flag:"flag_name9||Description"`
+	}
+	testObj := testStruct{}
+	os.Args = []string{""}
+
+	fs := &_flagSetMock{result: "", err: fmt.Errorf("flagSetMock error")}
+	provider := NewFlagProvider(WithFlagSet(fs))
+
+	err := provider.Init(&testObj)
+	assert(t, "FlagProvider.Init: flagSetMock error", err.Error())
+}
