@@ -111,6 +111,8 @@ func TestFileProvider_Init(t *testing.T) {
 	err = New(i, NewJSONFileProvider("./testdata/input.json")).SetOptions(OnFailFnOpt(func(err error) {
 		assert(t, "configurator: field [Test] with tags [file_json:\"void.\"] cannot be set. Last Provider error: JSONFileProvider: findValStrByPath returns empty value", err.Error())
 	})).InitValues()
-
 	assert(t, nil, err)
+
+	err = New(i, NewJSONFileProvider("./testdata/malformed_input.json")).InitValues()
+	assert(t, "cannot init [JSONFileProvider] provider: JSONFileProvider.Init: invalid character '}' looking for beginning of value", err.Error())
 }
