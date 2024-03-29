@@ -240,11 +240,11 @@ type _flagSetMock struct {
 	result string
 }
 
-func (f *_flagSetMock) Parse(arguments []string) error {
+func (f *_flagSetMock) Parse(_ []string) error {
 	return f.err
 }
 
-func (f *_flagSetMock) String(name string, value string, usage string) *string {
+func (f *_flagSetMock) String(_ string, _ string, _ string) *string {
 	return &f.result
 }
 
