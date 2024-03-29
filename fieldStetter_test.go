@@ -4,7 +4,6 @@ package configuration
 import (
 	"net"
 	"reflect"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -13,6 +12,8 @@ import (
 // SetValue tests
 
 func TestSetValue_String(t *testing.T) {
+	t.Parallel()
+
 	var testStr string
 	fieldType := reflect.TypeOf(&testStr).Elem()
 	fieldVal := reflect.ValueOf(&testStr).Elem()
@@ -25,6 +26,8 @@ func TestSetValue_String(t *testing.T) {
 }
 
 func TestSetValue_Int8(t *testing.T) {
+	t.Parallel()
+
 	var testInt8 int8
 	fieldType := reflect.TypeOf(&testInt8).Elem()
 	fieldVal := reflect.ValueOf(&testInt8).Elem()
@@ -37,6 +40,8 @@ func TestSetValue_Int8(t *testing.T) {
 }
 
 func TestSetValue_Uint16(t *testing.T) {
+	t.Parallel()
+
 	var testUint16 uint16
 	fieldType := reflect.TypeOf(&testUint16).Elem()
 	fieldVal := reflect.ValueOf(&testUint16).Elem()
@@ -49,6 +54,8 @@ func TestSetValue_Uint16(t *testing.T) {
 }
 
 func TestSetValue_Int64(t *testing.T) {
+	t.Parallel()
+
 	var (
 		testInt64 int64
 		fieldVal  = reflect.ValueOf(&testInt64).Elem()
@@ -61,6 +68,8 @@ func TestSetValue_Int64(t *testing.T) {
 }
 
 func TestSetValue_Duration(t *testing.T) {
+	t.Parallel()
+
 	var (
 		testDuration   time.Duration
 		fieldVal       = reflect.ValueOf(&testDuration).Elem()
@@ -74,6 +83,8 @@ func TestSetValue_Duration(t *testing.T) {
 }
 
 func TestSetValue_Float(t *testing.T) {
+	t.Parallel()
+
 	var testFloat32 float32
 	fieldType := reflect.TypeOf(&testFloat32).Elem()
 	fieldVal := reflect.ValueOf(&testFloat32).Elem()
@@ -86,6 +97,8 @@ func TestSetValue_Float(t *testing.T) {
 }
 
 func TestSetValue_Bool(t *testing.T) {
+	t.Parallel()
+
 	var testBool bool
 	fieldType := reflect.TypeOf(&testBool).Elem()
 	fieldVal := reflect.ValueOf(&testBool).Elem()
@@ -100,6 +113,8 @@ func TestSetValue_Bool(t *testing.T) {
 // SetPtr tests
 
 func TestSetPtr_String(t *testing.T) {
+	t.Parallel()
+
 	var testStr *string
 	fieldType := reflect.TypeOf(&testStr).Elem()
 	fieldVal := reflect.ValueOf(&testStr).Elem()
@@ -114,174 +129,152 @@ func TestSetPtr_String(t *testing.T) {
 }
 
 func TestSetPtrValue_Ints(t *testing.T) {
+	t.Parallel()
+
 	testValue := "42"
 
 	{
-		// int
 		var testInt *int
 		fieldType := reflect.TypeOf(&testInt).Elem()
 		fieldVal := reflect.ValueOf(&testInt).Elem()
+		expectedVal := ToPtr[int](42)
 
 		err := setPtrValue(fieldType, fieldVal, testValue)
 		assert(t, nil, err)
-		if testValue != strconv.FormatInt(int64(*testInt), 10) {
-			t.Errorf("\nexpected result: [%s] \nbut got: [%v]", testValue, testInt)
-		}
+		assert(t, expectedVal, testInt)
 	}
 
 	{
-		// int8
 		var testInt8 *int8
 		fieldType := reflect.TypeOf(&testInt8).Elem()
 		fieldVal := reflect.ValueOf(&testInt8).Elem()
+		expectedVal := ToPtr[int8](42)
 
 		err := setPtrValue(fieldType, fieldVal, testValue)
 		assert(t, nil, err)
-		if testValue != strconv.FormatInt(int64(*testInt8), 10) {
-			t.Errorf("\nexpected result: [%s] \nbut got: [%v]", testValue, testInt8)
-		}
+		assert(t, expectedVal, testInt8)
 	}
 
 	{
-		// int16
 		var testInt16 *int16
 		fieldType := reflect.TypeOf(&testInt16).Elem()
 		fieldVal := reflect.ValueOf(&testInt16).Elem()
+		expectedVal := ToPtr[int16](42)
 
 		err := setPtrValue(fieldType, fieldVal, testValue)
 		assert(t, nil, err)
-		if testValue != strconv.FormatInt(int64(*testInt16), 10) {
-			t.Errorf("\nexpected result: [%s] \nbut got: [%v]", testValue, testInt16)
-		}
+		assert(t, expectedVal, testInt16)
 	}
 
 	{
-		// int32
 		var testInt32 *int32
 		fieldType := reflect.TypeOf(&testInt32).Elem()
 		fieldVal := reflect.ValueOf(&testInt32).Elem()
+		expectedVal := ToPtr[int32](42)
 
 		err := setPtrValue(fieldType, fieldVal, testValue)
 		assert(t, nil, err)
-		if testValue != strconv.FormatInt(int64(*testInt32), 10) {
-			t.Errorf("\nexpected result: [%s] \nbut got: [%v]", testValue, testInt32)
-		}
+		assert(t, expectedVal, testInt32)
 	}
 
 	{
-		// int64
 		var testInt64 *int64
 		fieldType := reflect.TypeOf(&testInt64).Elem()
 		fieldVal := reflect.ValueOf(&testInt64).Elem()
+		expectedVal := ToPtr[int64](42)
 
 		err := setPtrValue(fieldType, fieldVal, testValue)
 		assert(t, nil, err)
-		if testValue != strconv.FormatInt(*testInt64, 10) {
-			t.Errorf("\nexpected result: [%s] \nbut got: [%v]", testValue, testInt64)
-		}
+		assert(t, expectedVal, testInt64)
 	}
 }
 
 func TestSetPtrValue_Uints(t *testing.T) {
+	t.Parallel()
+
 	testValue := "42"
 
 	{
-		// uint
 		var testUint *uint
 		fieldType := reflect.TypeOf(&testUint).Elem()
 		fieldVal := reflect.ValueOf(&testUint).Elem()
+		expectedVal := ToPtr[uint](42)
 
 		err := setPtrValue(fieldType, fieldVal, testValue)
 		assert(t, nil, err)
-		if testValue != strconv.FormatUint(uint64(*testUint), 10) {
-			t.Errorf("\nexpected result: [%s] \nbut got: [%v]", testValue, testUint)
-		}
+		assert(t, expectedVal, testUint)
 	}
 
 	{
-		// uint8
 		var testUint8 *uint8
 		fieldType := reflect.TypeOf(&testUint8).Elem()
 		fieldVal := reflect.ValueOf(&testUint8).Elem()
+		expectedVal := ToPtr[uint8](42)
 
 		err := setPtrValue(fieldType, fieldVal, testValue)
 		assert(t, nil, err)
-		if testValue != strconv.FormatUint(uint64(*testUint8), 10) {
-			t.Errorf("\nexpected result: [%s] \nbut got: [%v]", testValue, testUint8)
-		}
+		assert(t, expectedVal, testUint8)
 	}
 
 	{
-		// uint16
 		var testUint16 *uint16
 		fieldType := reflect.TypeOf(&testUint16).Elem()
 		fieldVal := reflect.ValueOf(&testUint16).Elem()
+		expectedVal := ToPtr[uint16](42)
 
 		err := setPtrValue(fieldType, fieldVal, testValue)
 		assert(t, nil, err)
-		if testValue != strconv.FormatUint(uint64(*testUint16), 10) {
-			t.Errorf("\nexpected result: [%s] \nbut got: [%v]", testValue, testUint16)
-		}
+		assert(t, expectedVal, testUint16)
 	}
 
 	{
-		// uint32
 		var testUint32 *uint32
 		fieldType := reflect.TypeOf(&testUint32).Elem()
 		fieldVal := reflect.ValueOf(&testUint32).Elem()
+		expectedVal := ToPtr[uint32](42)
 
 		err := setPtrValue(fieldType, fieldVal, testValue)
 		assert(t, nil, err)
-		if testValue != strconv.FormatUint(uint64(*testUint32), 10) {
-			t.Errorf("\nexpected result: [%s] \nbut got: [%v]", testValue, testUint32)
-		}
+		assert(t, expectedVal, testUint32)
 	}
 
 	{
-		// uint64
 		var testUint64 *uint64
 		fieldType := reflect.TypeOf(&testUint64).Elem()
 		fieldVal := reflect.ValueOf(&testUint64).Elem()
+		expectedVal := ToPtr[uint64](42)
 
 		err := setPtrValue(fieldType, fieldVal, testValue)
 		assert(t, nil, err)
-		if testValue != strconv.FormatUint(*testUint64, 10) {
-			t.Errorf("\nexpected result: [%s] \nbut got: [%v]", testValue, testUint64)
-		}
+		assert(t, expectedVal, testUint64)
 	}
 }
 
 func TestSetPtrValue_Floats(t *testing.T) {
+	t.Parallel()
+
 	testValue := "42.0"
 
 	{
-		// float32
 		var testFloat32 *float32
 		fieldType := reflect.TypeOf(&testFloat32).Elem()
 		fieldVal := reflect.ValueOf(&testFloat32).Elem()
+		expectedVal := ToPtr[float32](42)
 
 		err := setPtrValue(fieldType, fieldVal, testValue)
 		assert(t, nil, err)
-
-		gotStr := strconv.FormatFloat(float64(*testFloat32), 'f', 1, 64)
-		if testValue != gotStr {
-			t.Errorf("\nexpected result: [%s] \nbut got: [%v]", testValue, gotStr)
-		}
+		assert(t, expectedVal, testFloat32)
 	}
 
 	{
-		// float64
-		var testFloat32 *float64
-		fieldType := reflect.TypeOf(&testFloat32).Elem()
-		fieldVal := reflect.ValueOf(&testFloat32).Elem()
+		var testFloat64 *float64
+		fieldType := reflect.TypeOf(&testFloat64).Elem()
+		fieldVal := reflect.ValueOf(&testFloat64).Elem()
+		expectedVal := ToPtr[float64](42)
 
 		err := setPtrValue(fieldType, fieldVal, testValue)
 		assert(t, nil, err)
-
-		gotStr := strconv.FormatFloat(*testFloat32, 'f', 1, 64)
-		if testValue != gotStr {
-			t.Errorf("\nexpected result: [%s] \nbut got: [%v]", testValue, gotStr)
-		}
+		assert(t, expectedVal, testFloat64)
 	}
 }
 
@@ -290,18 +283,18 @@ func TestSetPtrValue_Bool(t *testing.T) {
 	fieldType := reflect.TypeOf(&testBool).Elem()
 	fieldVal := reflect.ValueOf(&testBool).Elem()
 	testValue := "true"
+	expectedVal := ToPtr[bool](true)
 
-	if err := setPtrValue(fieldType, fieldVal, testValue); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if fieldVal.Elem().Bool() != true {
-		t.Fatalf("\nexpected result: [%s] \nbut got: [%v]", testValue, testBool)
-	}
+	err := setPtrValue(fieldType, fieldVal, testValue)
+	assert(t, nil, err)
+	assert(t, expectedVal, testBool)
 }
 
 // SetValue slice tests
 
 func TestSetValue_StringSlice(t *testing.T) {
+	t.Parallel()
+
 	var testStr []string
 	fieldType := reflect.TypeOf(&testStr).Elem()
 	fieldVal := reflect.ValueOf(&testStr).Elem()
@@ -314,6 +307,8 @@ func TestSetValue_StringSlice(t *testing.T) {
 }
 
 func TestSetValue_StringSliceSingleElement(t *testing.T) {
+	t.Parallel()
+
 	var testStr []string
 	fieldType := reflect.TypeOf(&testStr).Elem()
 	fieldVal := reflect.ValueOf(&testStr).Elem()
@@ -326,6 +321,8 @@ func TestSetValue_StringSliceSingleElement(t *testing.T) {
 }
 
 func TestSetValue_IntSlice(t *testing.T) {
+	t.Parallel()
+
 	var testStr []int
 	fieldType := reflect.TypeOf(&testStr).Elem()
 	fieldVal := reflect.ValueOf(&testStr).Elem()
@@ -338,6 +335,8 @@ func TestSetValue_IntSlice(t *testing.T) {
 }
 
 func TestSetValue_UintSlice(t *testing.T) {
+	t.Parallel()
+
 	var (
 		testStr   []uint
 		fieldType = reflect.TypeOf(&testStr).Elem()
@@ -352,6 +351,8 @@ func TestSetValue_UintSlice(t *testing.T) {
 }
 
 func TestSetValue_FloatSlice(t *testing.T) {
+	t.Parallel()
+
 	var testStr []float64
 	fieldType := reflect.TypeOf(&testStr).Elem()
 	fieldVal := reflect.ValueOf(&testStr).Elem()
@@ -364,6 +365,8 @@ func TestSetValue_FloatSlice(t *testing.T) {
 }
 
 func TestSetValue_BoolSlice(t *testing.T) {
+	t.Parallel()
+
 	var testStr []bool
 	fieldType := reflect.TypeOf(&testStr).Elem()
 	fieldVal := reflect.ValueOf(&testStr).Elem()
@@ -372,10 +375,12 @@ func TestSetValue_BoolSlice(t *testing.T) {
 
 	err := setValue(fieldType, fieldVal, testValue)
 	assert(t, nil, err)
-	assert(t, expected, fieldVal.Interface())
+	assert(t, expected, testStr)
 }
 
 func TestSetValue_EmptySlice(t *testing.T) {
+	t.Parallel()
+
 	var testStr []bool
 	fieldType := reflect.TypeOf(&testStr).Elem()
 	fieldVal := reflect.ValueOf(&testStr).Elem()
@@ -386,6 +391,8 @@ func TestSetValue_EmptySlice(t *testing.T) {
 }
 
 func TestSetValue_Unsupported(t *testing.T) {
+	t.Parallel()
+
 	var testStr chan struct{}
 	fieldType := reflect.TypeOf(&testStr).Elem()
 	fieldVal := reflect.ValueOf(&testStr).Elem()
@@ -402,24 +409,22 @@ func TestSetValue_Unsupported(t *testing.T) {
 }
 
 func TestSetValue_IntPtrSlice(t *testing.T) {
-	var testStr []*int
-	fieldType := reflect.TypeOf(&testStr).Elem()
-	fieldVal := reflect.ValueOf(&testStr).Elem()
+	t.Parallel()
+
+	var testIntSlice []*int
+	fieldType := reflect.TypeOf(&testIntSlice).Elem()
+	fieldVal := reflect.ValueOf(&testIntSlice).Elem()
 	testValue := "1;2;3"
-	ints := []int{1, 2, 3}
-	expected := []*int{&ints[0], &ints[1], &ints[2]}
+	expected := []*int{ToPtr(1), ToPtr(2), ToPtr(3)}
 
 	err := setValue(fieldType, fieldVal, testValue)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !reflect.DeepEqual(expected, fieldVal.Interface()) {
-		t.Fatalf("\nexpected result: %+v \nbut got: %+v", expected, fieldVal.Interface())
-	}
+	assert(t, nil, err)
+	assert(t, expected, testIntSlice)
 }
 
 func TestSetValue_IntPtrSlice_Err(t *testing.T) {
+	t.Parallel()
+
 	var testStr []*struct{}
 	fieldType := reflect.TypeOf(&testStr).Elem()
 	fieldVal := reflect.ValueOf(&testStr).Elem()
@@ -481,13 +486,12 @@ func (it *ipsTest) SetField(sf reflect.StructField, val reflect.Value, valStr st
 }
 
 func Test_CustomFieldSetter(t *testing.T) {
+	t.Parallel()
+
 	var cfg testCfgSetField
-
 	err := FromEnvAndDefault(&cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
 
+	assert(t, nil, err)
 	assert(t, "127.0.0.1", net.IP(*cfg.HostOne).String())
 	assert(t, "127.0.0.2", net.IP(cfg.HostTwo).String())
 	assert(t, "one", cfg.NameOne)

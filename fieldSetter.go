@@ -37,6 +37,7 @@ func SetField(field reflect.StructField, val reflect.Value, valStr string) error
 func setValue(t reflect.Type, v reflect.Value, val string) error {
 	var err error
 
+	// nolint:exhaustive
 	switch t.Kind() {
 	case reflect.String:
 		v.SetString(val)
@@ -95,6 +96,7 @@ func setSlice(t reflect.Type, v reflect.Value, val string) error {
 		return fmt.Errorf("setSlice: got empty slice")
 	}
 
+	// nolint:exhaustive
 	switch t.Elem().Kind() {
 	case reflect.String:
 		slice = reflect.MakeSlice(t, size, size)
@@ -237,4 +239,8 @@ func splitIntoSlice(val string) []string {
 	}
 
 	return items
+}
+
+func ToPtr[T any](val T) *T {
+	return &val
 }
