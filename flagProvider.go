@@ -153,20 +153,20 @@ func (fp flagProvider) getFlagData(field reflect.StructField) (*flagData, error)
 
 	flagInfo := strings.Split(key, flagSeparator)
 	switch len(flagInfo) {
-	case 3:
+	case 3: // nolint:gomnd
 		return &flagData{
 			key:        strings.TrimSpace(flagInfo[0]),
 			defaultVal: strings.TrimSpace(flagInfo[1]),
 			usage:      flagInfo[2],
 		}, nil
 
-	case 2:
+	case 2: // nolint:gomnd
 		return &flagData{
 			key:        strings.TrimSpace(flagInfo[0]),
 			defaultVal: strings.TrimSpace(flagInfo[1]),
 		}, nil
 
-	case 1:
+	case 1: // nolint:gomnd
 		return &flagData{
 			key: strings.TrimSpace(flagInfo[0]),
 		}, nil
