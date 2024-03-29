@@ -22,7 +22,7 @@ func TestSetValue_String(t *testing.T) {
 
 	err := setValue(fieldType, fieldVal, testValue)
 	assert(t, nil, err)
-	assert(t, expectedValue, fieldVal.String())
+	assert(t, expectedValue, testStr)
 }
 
 func TestSetValue_Int8(t *testing.T) {
@@ -32,11 +32,11 @@ func TestSetValue_Int8(t *testing.T) {
 	fieldType := reflect.TypeOf(&testInt8).Elem()
 	fieldVal := reflect.ValueOf(&testInt8).Elem()
 	testValue := "42"
-	expectedValue := int64(42)
+	expectedValue := int8(42)
 
 	err := setValue(fieldType, fieldVal, testValue)
 	assert(t, nil, err)
-	assert(t, expectedValue, fieldVal.Int())
+	assert(t, expectedValue, testInt8)
 }
 
 func TestSetValue_Uint16(t *testing.T) {
@@ -46,11 +46,11 @@ func TestSetValue_Uint16(t *testing.T) {
 	fieldType := reflect.TypeOf(&testUint16).Elem()
 	fieldVal := reflect.ValueOf(&testUint16).Elem()
 	testValue := "42"
-	expectedValue := uint64(42)
+	expectedValue := uint16(42)
 
 	err := setValue(fieldType, fieldVal, testValue)
 	assert(t, nil, err)
-	assert(t, expectedValue, fieldVal.Uint())
+	assert(t, expectedValue, testUint16)
 }
 
 func TestSetValue_Int64(t *testing.T) {
@@ -63,23 +63,21 @@ func TestSetValue_Int64(t *testing.T) {
 	)
 
 	setInt64(fieldVal, testValue)
-
-	assert(t, testInt64, fieldVal.Int())
+	assert(t, testInt64, testInt64)
 }
 
 func TestSetValue_Duration(t *testing.T) {
 	t.Parallel()
 
 	var (
-		testDuration   time.Duration
-		fieldVal       = reflect.ValueOf(&testDuration).Elem()
-		testValue      = "42ms"
-		expectedVal, _ = time.ParseDuration(testValue)
+		testDuration time.Duration
+		fieldVal     = reflect.ValueOf(&testDuration).Elem()
+		testValue    = "42ms"
+		expectedVal  = time.Millisecond * 42
 	)
 
 	setInt64(fieldVal, testValue)
-
-	assert(t, expectedVal, time.Duration(fieldVal.Int()))
+	assert(t, expectedVal, testDuration)
 }
 
 func TestSetValue_Float(t *testing.T) {
@@ -93,7 +91,7 @@ func TestSetValue_Float(t *testing.T) {
 
 	err := setValue(fieldType, fieldVal, testValue)
 	assert(t, nil, err)
-	assert(t, expectedValue, fieldVal.Float())
+	assert(t, expectedValue, testFloat32)
 }
 
 func TestSetValue_Bool(t *testing.T) {
@@ -107,7 +105,7 @@ func TestSetValue_Bool(t *testing.T) {
 
 	err := setValue(fieldType, fieldVal, testValue)
 	assert(t, nil, err)
-	assert(t, expectedValue, fieldVal.Bool())
+	assert(t, expectedValue, testBool)
 }
 
 // SetPtr tests
@@ -119,13 +117,11 @@ func TestSetPtr_String(t *testing.T) {
 	fieldType := reflect.TypeOf(&testStr).Elem()
 	fieldVal := reflect.ValueOf(&testStr).Elem()
 	testValue := "test_val1"
+	expected := ToPtr[string]("test_val1")
 
-	if err := setPtrValue(fieldType, fieldVal, testValue); err != nil {
-		t.Fatal(err)
-	}
-	if !reflect.DeepEqual(*testStr, testValue) {
-		t.Fatalf("\nexpected result: [%s] \nbut got: [%s]", testValue, *testStr)
-	}
+	err := setPtrValue(fieldType, fieldVal, testValue)
+	assert(t, nil, err)
+	assert(t, expected, testStr)
 }
 
 func TestSetPtrValue_Ints(t *testing.T) {
