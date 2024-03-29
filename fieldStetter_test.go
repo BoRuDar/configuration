@@ -87,7 +87,7 @@ func TestSetValue_Float(t *testing.T) {
 	fieldType := reflect.TypeOf(&testFloat32).Elem()
 	fieldVal := reflect.ValueOf(&testFloat32).Elem()
 	testValue := "42"
-	expectedValue := float64(42)
+	expectedValue := float32(42.0)
 
 	err := setValue(fieldType, fieldVal, testValue)
 	assert(t, nil, err)
