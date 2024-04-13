@@ -1,8 +1,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/BoRuDar/configuration/v4)](https://goreportcard.com/report/github.com/BoRuDar/configuration/v4)
 [![codecov](https://codecov.io/gh/BoRuDar/configuration/branch/master/graph/badge.svg)](https://codecov.io/gh/BoRuDar/configuration)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/6295/badge)](https://www.bestpractices.dev/projects/6295)
 [![GoDoc](https://godoc.org/github.com/BoRuDar/configuration?status.png)](https://godoc.org/github.com/BoRuDar/configuration/v4)
 [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/6295/badge)](https://www.bestpractices.dev/projects/6295)
 
 
 # Configuration
@@ -13,7 +13,7 @@ Available features:
 - setting values from command line *flags* - `NewFlagProvider(&cfg)`
 - setting values from a JSON *file* - `NewJSONFileProvider("./testdata/input.json")`
 
-Supported types:
+## Supported types:
 - `string`, `*string`, `[]string`, `[]*string`
 - `bool`, `*bool`, `[]bool`, `[]*bool`
 - `int`, `int8`, `int16`, `int32`, `int64` + slices of these types
@@ -24,6 +24,7 @@ Supported types:
 - `*float32`, `*float64` + slices of these types
 - `time.Duration` from strings like `12ms`, `2s` etc.
 - embedded structs and pointers to structs
+- any custom type which satisfies `FieldSetter` [interface](#FieldSetter-interface)
 
 
 # Why?

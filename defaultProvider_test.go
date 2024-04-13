@@ -7,6 +7,8 @@ import (
 )
 
 func TestDefaultProvider(t *testing.T) {
+	t.Parallel()
+
 	type testStruct struct {
 		Name string `default:"default_provider_val"`
 	}
@@ -28,6 +30,8 @@ func TestDefaultProvider(t *testing.T) {
 }
 
 func TestDefaultProviderPtr(t *testing.T) {
+	t.Parallel()
+
 	type testStruct struct {
 		Name *string `default:"default_provider_val_ptr"`
 	}
@@ -49,6 +53,8 @@ func TestDefaultProviderPtr(t *testing.T) {
 }
 
 func TestDefaultProviderFailed(t *testing.T) {
+	t.Parallel()
+
 	type testStruct struct {
 		Name string
 	}
