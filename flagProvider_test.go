@@ -1,4 +1,4 @@
-// nolint:dupl,goconst
+// nolint:dupl,goconst,paralleltest
 package configuration
 
 import (
@@ -210,7 +210,6 @@ func TestFlagProvider_Errors(t *testing.T) {
 
 	for name, test := range testCases {
 		test := test
-
 		t.Run(name, func(t *testing.T) {
 			fieldType := reflect.TypeOf(test.obj).Elem().Field(0)
 			fieldVal := reflect.ValueOf(test.obj).Elem().Field(0)

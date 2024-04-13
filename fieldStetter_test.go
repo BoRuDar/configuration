@@ -275,6 +275,8 @@ func TestSetPtrValue_Floats(t *testing.T) {
 }
 
 func TestSetPtrValue_Bool(t *testing.T) {
+	t.Parallel()
+
 	var testBool *bool
 	fieldType := reflect.TypeOf(&testBool).Elem()
 	fieldVal := reflect.ValueOf(&testBool).Elem()
