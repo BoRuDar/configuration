@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+// nolint:paralleltest
+// t.Setenv doesn't work with t.Parallel()
 func TestConfigurator(t *testing.T) {
 	// setting command line flag
 	os.Args = []string{"smth", "-name=flag_value"}
@@ -83,6 +85,8 @@ func TestConfigurator(t *testing.T) {
 }
 
 func TestConfigurator_Errors(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
 		input     any
 		providers []Provider
@@ -102,6 +106,8 @@ func TestConfigurator_Errors(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			err := New(test.input, test.providers...).InitValues()
 			if err == nil {
 				t.Fatal("expected error but got nil")
@@ -111,6 +117,8 @@ func TestConfigurator_Errors(t *testing.T) {
 }
 
 func TestEmbeddedFlags(t *testing.T) {
+	t.Parallel()
+
 	type (
 		Client struct {
 			ServerAddress string `flag:"addr|127.0.0.1:443|server address"`
@@ -130,6 +138,7 @@ func TestEmbeddedFlags(t *testing.T) {
 	assert(t, cfg.Client.ServerAddress, "addr_value")
 }
 
+// nolint:paralleltest
 func TestFallBackToDefault(t *testing.T) {
 	// defining a struct
 	cfg := struct {
@@ -149,6 +158,8 @@ func TestFallBackToDefault(t *testing.T) {
 }
 
 func TestSetOnFailFn(t *testing.T) {
+	t.Parallel()
+
 	cfg := struct {
 		Name string `default:"test_name"`
 	}{}
@@ -172,6 +183,8 @@ func TestSetOnFailFn(t *testing.T) {
 }
 
 func TestProviderName(t *testing.T) {
+	t.Parallel()
+
 	testCases := map[string]struct {
 		provider     Provider
 		expectedName string
@@ -198,21 +211,29 @@ func TestProviderName(t *testing.T) {
 		test := test
 
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			assert(t, test.expectedName, test.provider.Name())
 		})
 	}
 }
 
 func TestConfigurator_NameCollision(t *testing.T) {
+	t.Parallel()
+
 	err := New(&struct{}{}, NewDefaultProvider(), NewDefaultProvider()).InitValues()
 	assert(t, ErrProviderNameCollision, err)
 }
 
 func TestConfigurator_FailedProvider(t *testing.T) {
+	t.Parallel()
+
 	err := New(&struct{}{}, NewJSONFileProvider("doesn't exist")).InitValues()
 	assert(t, "cannot init [JSONFileProvider] provider: JSONFileProvider.Init: open doesn't exist: no such file or directory", err.Error())
 }
 
+// nolint:paralleltest
+// t.Setenv doesn't work with t.Parallel()
 func Test_FromEnvAndDefault(t *testing.T) {
 	t.Setenv("AGE", "24")
 
