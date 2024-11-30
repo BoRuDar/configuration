@@ -8,12 +8,11 @@ import (
 )
 
 // New creates a new instance of the Configurator.
-func New(
-	cfgPtr any, // must be a pointer to a struct
+func New[T any](
 	providers ...Provider, // providers will be executed in order of their declaration
-) *Configurator {
-	return &Configurator{
-		configPtr:      cfgPtr,
+) *Configurator[T] {
+	return &Configurator[T]{
+		configPtr:      new(T),
 		providers:      providers,
 		registeredTags: map[string]struct{}{},
 		loggerFn:       log.Printf,
@@ -26,8 +25,8 @@ func New(
 	}
 }
 
-type Configurator struct {
-	configPtr      any
+type Configurator[T any] struct {
+	configPtr      *T
 	providers      []Provider
 	registeredTags map[string]struct{}
 	onErrorFn      func(field reflect.StructField, err error)
@@ -35,7 +34,7 @@ type Configurator struct {
 	loggingEnabled bool
 }
 
-func (c *Configurator) SetOptions(options ...ConfiguratorOption) *Configurator {
+func (c *Configurator[T]) SetOptions(options ...ConfiguratorOption[T]) *Configurator[T] {
 	for _, o := range options {
 		o(c)
 	}
@@ -44,31 +43,31 @@ func (c *Configurator) SetOptions(options ...ConfiguratorOption) *Configurator {
 
 // InitValues sets values into struct field using given set of providers
 // respecting their order: first defined -> first executed
-func (c *Configurator) InitValues() error {
+func (c *Configurator[T]) InitValues() (*T, error) {
 	if reflect.TypeOf(c.configPtr).Kind() != reflect.Ptr {
-		return ErrNotAPointer
+		return nil, ErrNotAPointer
 	}
 
 	if len(c.providers) == 0 {
-		return ErrNoProviders
+		return nil, ErrNoProviders
 	}
 
 	for _, p := range c.providers {
 		if _, ok := c.registeredTags[p.Name()]; ok {
-			return ErrProviderNameCollision
+			return nil, ErrProviderNameCollision
 		}
 		c.registeredTags[p.Name()] = struct{}{}
 
 		if err := p.Init(c.configPtr); err != nil {
-			return fmt.Errorf("cannot init [%s] provider: %w", p.Name(), err)
+			return nil, fmt.Errorf("cannot init [%s] provider: %w", p.Name(), err)
 		}
 	}
 
 	c.fillUp(c.configPtr)
-	return nil
+	return c.configPtr, nil
 }
 
-func (c *Configurator) fillUp(i any) {
+func (c *Configurator[T]) fillUp(i any) {
 	var (
 		t = reflect.TypeOf(i)
 		v = reflect.ValueOf(i)
@@ -100,7 +99,7 @@ func (c *Configurator) fillUp(i any) {
 	}
 }
 
-func (c *Configurator) applyProviders(field reflect.StructField, v reflect.Value) {
+func (c *Configurator[T]) applyProviders(field reflect.StructField, v reflect.Value) {
 	if !field.IsExported() {
 		return
 	}
@@ -121,6 +120,6 @@ func (c *Configurator) applyProviders(field reflect.StructField, v reflect.Value
 }
 
 // FromEnvAndDefault is a shortcut for `New(cfg, NewEnvProvider(), NewDefaultProvider()).InitValues()`.
-func FromEnvAndDefault(cfg any) error {
-	return New(cfg, NewEnvProvider(), NewDefaultProvider()).InitValues()
+func FromEnvAndDefault[T any]() (*T, error) {
+	return New[T](NewEnvProvider(), NewDefaultProvider()).InitValues()
 }

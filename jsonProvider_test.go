@@ -103,20 +103,20 @@ func TestFindValStrByPath(t *testing.T) {
 }
 
 func TestFileProvider_Init(t *testing.T) {
-	i := &struct {
+	type Cfg struct {
 		Test int `file_json:"void."`
-	}{}
+	}
 
-	err := New(i, NewJSONFileProvider("./testdata/dummy.file")).InitValues()
+	_, err := New[Cfg](NewJSONFileProvider("./testdata/dummy.file")).InitValues()
 	assert(t, "cannot init [JSONFileProvider] provider: file must have .json extension", err.Error())
 
-	err = New(i, NewJSONFileProvider("./testdata/input.json")).SetOptions(OnFailFnOpt(func(field reflect.StructField, err error) {
+	_, err = New[Cfg](NewJSONFileProvider("./testdata/input.json")).SetOptions(OnFailFnOpt[Cfg](func(field reflect.StructField, err error) {
 		assert(t, "Test", field.Name)
 		assert(t, `file_json:"void."`, fmt.Sprintf("%s", field.Tag))
 		assert(t, "JSONFileProvider: findValStrByPath returns empty value", err.Error())
 	})).InitValues()
 	assert(t, nil, err)
 
-	err = New(i, NewJSONFileProvider("./testdata/malformed_input.json")).InitValues()
+	_, err = New[Cfg](NewJSONFileProvider("./testdata/malformed_input.json")).InitValues()
 	assert(t, "cannot init [JSONFileProvider] provider: JSONFileProvider.Init: invalid character '}' looking for beginning of value", err.Error())
 }
