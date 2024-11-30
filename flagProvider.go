@@ -91,7 +91,7 @@ func (fp flagProvider) initFlagProvider(ptr any) error {
 		t = t.Elem()
 		v = v.Elem()
 	default:
-		return ErrNotAPointer
+		return ErrInvalidInput
 	}
 
 	for i := 0; i < t.NumField(); i++ {

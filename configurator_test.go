@@ -3,7 +3,6 @@ package configuration
 import (
 	"net"
 	"os"
-	"reflect"
 	"testing"
 	"time"
 )
@@ -63,7 +62,7 @@ func TestConfigurator(t *testing.T) {
 	assert(t, "flag_value", cfg.Name)
 	assert(t, "defaultLastName", cfg.LastName)
 	assert(t, byte(45), cfg.Age)
-	assert(t, true, cfg.BoolPtr != nil)
+	assert(t, true, cfg.BoolPtr != nil, "should not be nil")
 	assert(t, false, *cfg.BoolPtr)
 
 	assert(t, true, cfg.ObjPtr != nil)
@@ -85,37 +84,15 @@ func TestConfigurator(t *testing.T) {
 	}
 }
 
-//func TestConfigurator_Errors(t *testing.T) {
-//	t.Parallel()
-//
-//	tests := map[string]struct {
-//		input     any
-//		providers []Provider
-//	}{
-//		"empty providers": {
-//			input:     &struct{}{},
-//			providers: []Provider{},
-//		},
-//		"non-pointer": {
-//			input: struct{}{},
-//			providers: []Provider{
-//				NewDefaultProvider(),
-//			},
-//		},
-//	}
-//
-//	for name, test := range tests {
-//		test := test
-//		t.Run(name, func(t *testing.T) {
-//			t.Parallel()
-//
-//			_, err := New[any](test.input, test.providers...).InitValues()
-//			if err == nil {
-//				t.Fatal("expected error but got nil")
-//			}
-//		})
-//	}
-//}
+func TestConfigurator_Errors(t *testing.T) {
+	t.Parallel()
+
+	_, err := New[int](NewDefaultProvider()).InitValues()
+	if err == nil {
+		t.Fatal("expected error but got nil")
+	}
+	assert(t, ErrNotAStruct.Error(), err.Error())
+}
 
 func TestEmbeddedFlags(t *testing.T) {
 	t.Parallel()
@@ -157,29 +134,6 @@ func TestFallBackToDefault(t *testing.T) {
 	}
 
 	assert(t, "default_val", cfg.NameFlag)
-}
-
-func TestSetOnFailFn(t *testing.T) {
-	t.Parallel()
-
-	type Cfg struct {
-		Name string `flag:""`
-	}
-	onFailFn := func(field reflect.StructField, err error) {
-		if err != nil && err.Error() != `no tag` {
-			t.Fatalf("unexpected error: %v", err)
-		}
-	}
-
-	c := New[Cfg](
-		NewFlagProvider(),
-	).SetOptions(
-		OnFailFnOpt[Cfg](onFailFn),
-	)
-
-	if _, err := c.InitValues(); err != nil {
-		t.Fatal("unexpected err: ", err)
-	}
 }
 
 func TestProviderName(t *testing.T) {

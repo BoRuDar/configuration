@@ -169,14 +169,14 @@ func TestFlagProvider_CustomFlagSet(t *testing.T) {
 	assert(t, testValue, testObj.Name)
 }
 
-func TestFlagProvider_ErrNotAPointer(t *testing.T) {
+func TestFlagProvider_ErrInvalidInput(t *testing.T) {
 	type testStruct struct {
 		Name string `flag:"flag_name6||||"`
 	}
 	testObj := testStruct{}
 	os.Args = []string{""}
 
-	if err := NewFlagProvider().Init(testObj); !errors.Is(err, ErrNotAPointer) {
+	if err := NewFlagProvider().Init(testObj); !errors.Is(err, ErrInvalidInput) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

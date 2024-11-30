@@ -3,7 +3,6 @@ package configuration
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 )
 
@@ -12,40 +11,23 @@ func New[T any](
 	providers ...Provider, // providers will be executed in order of their declaration
 ) *Configurator[T] {
 	return &Configurator[T]{
-		configPtr:      new(T),
-		providers:      providers,
-		registeredTags: map[string]struct{}{},
-		loggerFn:       log.Printf,
-		onErrorFn: func(field reflect.StructField, err error) {
-			if err != nil {
-				log.Printf("configurator: field [%s] with tags [%v] cannot be set. Last Provider error: %s", field.Name, field.Tag, err)
-			}
-		},
-		loggingEnabled: false,
+		configPtr:           new(T),
+		providers:           providers,
+		registeredProviders: map[string]struct{}{},
 	}
 }
 
 type Configurator[T any] struct {
-	configPtr      *T
-	providers      []Provider
-	registeredTags map[string]struct{}
-	onErrorFn      func(field reflect.StructField, err error)
-	loggerFn       func(format string, v ...any)
-	loggingEnabled bool
-}
-
-func (c *Configurator[T]) SetOptions(options ...ConfiguratorOption[T]) *Configurator[T] {
-	for _, o := range options {
-		o(c)
-	}
-	return c
+	configPtr           *T
+	providers           []Provider
+	registeredProviders map[string]struct{}
 }
 
 // InitValues sets values into struct field using given set of providers
 // respecting their order: first defined -> first executed
 func (c *Configurator[T]) InitValues() (*T, error) {
-	if reflect.TypeOf(c.configPtr).Kind() != reflect.Ptr {
-		return nil, ErrNotAPointer
+	if reflect.TypeOf(c.configPtr).Elem().Kind() != reflect.Struct {
+		return nil, ErrNotAStruct
 	}
 
 	if len(c.providers) == 0 {
@@ -53,21 +35,24 @@ func (c *Configurator[T]) InitValues() (*T, error) {
 	}
 
 	for _, p := range c.providers {
-		if _, ok := c.registeredTags[p.Name()]; ok {
+		if _, ok := c.registeredProviders[p.Name()]; ok {
 			return nil, ErrProviderNameCollision
 		}
-		c.registeredTags[p.Name()] = struct{}{}
+		c.registeredProviders[p.Name()] = struct{}{}
 
 		if err := p.Init(c.configPtr); err != nil {
 			return nil, fmt.Errorf("cannot init [%s] provider: %w", p.Name(), err)
 		}
 	}
 
-	c.fillUp(c.configPtr)
+	if err := c.fillUp(c.configPtr); err != nil {
+		return nil, err
+	}
+
 	return c.configPtr, nil
 }
 
-func (c *Configurator[T]) fillUp(i any) {
+func (c *Configurator[T]) fillUp(i any) error {
 	var (
 		t = reflect.TypeOf(i)
 		v = reflect.ValueOf(i)
@@ -85,38 +70,45 @@ func (c *Configurator[T]) fillUp(i any) {
 		)
 
 		if tField.Type.Kind() == reflect.Struct {
-			c.fillUp(vField.Addr().Interface())
+			if err := c.fillUp(vField.Addr().Interface()); err != nil {
+				return err
+			}
 			continue
 		}
 
 		if tField.Type.Kind() == reflect.Ptr && tField.Type.Elem().Kind() == reflect.Struct {
 			vField.Set(reflect.New(tField.Type.Elem()))
-			c.fillUp(vField.Interface())
+			if err := c.fillUp(vField.Interface()); err != nil {
+				return err
+			}
 			continue
 		}
 
-		c.applyProviders(tField, vField)
+		if err := c.applyProviders(tField, vField); err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
-func (c *Configurator[T]) applyProviders(field reflect.StructField, v reflect.Value) {
+func (c *Configurator[T]) applyProviders(field reflect.StructField, v reflect.Value) error {
 	if !field.IsExported() {
-		return
+		return nil
 	}
 
-	var lastErr error
 	for _, provider := range c.providers {
 		if _, found := fetchTagKey(field.Tag)[provider.Tag()]; !found {
 			// skip provider if it's not specified in tags
 			continue
 		}
 
-		if lastErr = provider.Provide(field, v); lastErr == nil {
-			return
+		if err := provider.Provide(field, v); err == nil {
+			return nil
 		}
 	}
 
-	c.onErrorFn(field, lastErr)
+	return fmt.Errorf("filed [%s] with tags [%s] hasn't been set", field.Name, field.Tag)
 }
 
 // FromEnvAndDefault is a shortcut for `New(cfg, NewEnvProvider(), NewDefaultProvider()).InitValues()`.

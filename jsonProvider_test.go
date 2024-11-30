@@ -3,7 +3,6 @@ package configuration
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -109,13 +108,6 @@ func TestFileProvider_Init(t *testing.T) {
 
 	_, err := New[Cfg](NewJSONFileProvider("./testdata/dummy.file")).InitValues()
 	assert(t, "cannot init [JSONFileProvider] provider: file must have .json extension", err.Error())
-
-	_, err = New[Cfg](NewJSONFileProvider("./testdata/input.json")).SetOptions(OnFailFnOpt[Cfg](func(field reflect.StructField, err error) {
-		assert(t, "Test", field.Name)
-		assert(t, `file_json:"void."`, fmt.Sprintf("%s", field.Tag))
-		assert(t, "JSONFileProvider: findValStrByPath returns empty value", err.Error())
-	})).InitValues()
-	assert(t, nil, err)
 
 	_, err = New[Cfg](NewJSONFileProvider("./testdata/malformed_input.json")).InitValues()
 	assert(t, "cannot init [JSONFileProvider] provider: JSONFileProvider.Init: invalid character '}' looking for beginning of value", err.Error())
