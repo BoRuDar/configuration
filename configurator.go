@@ -17,9 +17,9 @@ func New(
 		providers:      providers,
 		registeredTags: map[string]struct{}{},
 		loggerFn:       log.Printf,
-		onErrorFn: func(err error) {
+		onErrorFn: func(field reflect.StructField, err error) {
 			if err != nil {
-				log.Fatal(err)
+				log.Printf("configurator: field [%s] with tags [%v] cannot be set. Last Provider error: %s", field.Name, field.Tag, err)
 			}
 		},
 		loggingEnabled: false,
@@ -30,7 +30,7 @@ type Configurator struct {
 	configPtr      any
 	providers      []Provider
 	registeredTags map[string]struct{}
-	onErrorFn      func(err error)
+	onErrorFn      func(field reflect.StructField, err error)
 	loggerFn       func(format string, v ...any)
 	loggingEnabled bool
 }
@@ -107,12 +107,17 @@ func (c *Configurator) applyProviders(field reflect.StructField, v reflect.Value
 
 	var lastErr error
 	for _, provider := range c.providers {
+		if _, found := fetchTagKey(field.Tag)[provider.Tag()]; !found {
+			// skip provider if it's not specified in tags
+			continue
+		}
+
 		if lastErr = provider.Provide(field, v); lastErr == nil {
 			return
 		}
 	}
 
-	c.onErrorFn(fmt.Errorf("configurator: field [%s] with tags [%v] cannot be set. Last Provider error: %w", field.Name, field.Tag, lastErr))
+	c.onErrorFn(field, lastErr)
 }
 
 // FromEnvAndDefault is a shortcut for `New(cfg, NewEnvProvider(), NewDefaultProvider()).InitValues()`.

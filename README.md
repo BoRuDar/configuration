@@ -38,7 +38,7 @@ Available features:
 
 
 # Quick start
-Import path `github.com/BoRuDar/configuration/v4`
+Import path `github.com/BoRuDar/configuration/v5`
 ```go
 	// defining a struct
 cfg := struct {

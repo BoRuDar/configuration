@@ -1,3 +1,3 @@
-module github.com/BoRuDar/configuration/v4
+module github.com/BoRuDar/configuration/v5
 
-go 1.18
+go 1.23

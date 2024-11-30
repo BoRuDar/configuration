@@ -3,6 +3,7 @@ package configuration
 import (
 	"net"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -40,7 +41,7 @@ func TestConfigurator(t *testing.T) {
 			Beta       int      `file_json:"inside.beta"   default:"24"`
 			StrSlice   []string `default:"one;two"`
 			IntSlice   []int64  `default:"3; 4"`
-			unexported string   `xml:"ignored"` // nolint:govet
+			unexported string   // ignored
 		}
 		URLs   []*string `default:"http://localhost:3000;1.2.3.4:8080"`
 		HostIP ipTest    `default:"127.0.0.3"`
@@ -142,7 +143,7 @@ func TestEmbeddedFlags(t *testing.T) {
 func TestFallBackToDefault(t *testing.T) {
 	// defining a struct
 	cfg := struct {
-		NameFlag string `flag:"name_flag||Some description"   default:"default_val"`
+		NameFlag string `flag:"name_flag||Some description" default:"default_val"`
 	}{}
 
 	c := New(&cfg,
@@ -161,10 +162,10 @@ func TestSetOnFailFn(t *testing.T) {
 	t.Parallel()
 
 	cfg := struct {
-		Name string `default:"test_name"`
+		Name string `flag:""`
 	}{}
-	onFailFn := func(err error) {
-		if err != nil && err.Error() != "configurator: field [Name] with tags [default:\"test_name\"] cannot be set. Last Provider error: no tag" {
+	onFailFn := func(field reflect.StructField, err error) {
+		if err != nil && err.Error() != `no tag` {
 			t.Fatalf("unexpected error: %v", err)
 		}
 	}
@@ -172,10 +173,9 @@ func TestSetOnFailFn(t *testing.T) {
 	c := New(
 		&cfg,
 		NewFlagProvider(),
-	).
-		SetOptions(
-			OnFailFnOpt(onFailFn),
-		)
+	).SetOptions(
+		OnFailFnOpt(onFailFn),
+	)
 
 	if err := c.InitValues(); err != nil {
 		t.Fatal("unexpected err: ", err)

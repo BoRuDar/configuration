@@ -11,6 +11,7 @@ import (
 
 const (
 	FlagProviderName = `FlagProvider`
+	FlagProviderTag  = `flag`
 	flagSeparator    = "|"
 )
 
@@ -36,7 +37,11 @@ func (flagProvider) Name() string {
 	return FlagProviderName
 }
 
-func (fp flagProvider) Init(ptr any) error {
+func (flagProvider) Tag() string {
+	return FlagProviderTag
+}
+
+func (fp flagProvider) Init(ptr any) (err error) {
 	if err := fp.initFlagProvider(ptr); err != nil {
 		return err
 	}
@@ -146,7 +151,7 @@ func (fp flagProvider) Provide(field reflect.StructField, v reflect.Value) error
 }
 
 func (fp flagProvider) getFlagData(field reflect.StructField) (*flagData, error) {
-	key := field.Tag.Get("flag")
+	key := field.Tag.Get(FlagProviderTag)
 	if len(key) == 0 {
 		return nil, ErrNoTag
 	}

@@ -7,7 +7,10 @@ import (
 	"strings"
 )
 
-const EnvProviderName = `EnvProvider`
+const (
+	EnvProviderName = `EnvProvider`
+	EnvProviderTag  = `env`
+)
 
 // NewEnvProvider creates provider which sets values from ENV variables (gets variable name from `env` tag)
 // nolint:revive
@@ -21,12 +24,16 @@ func (envProvider) Name() string {
 	return EnvProviderName
 }
 
+func (envProvider) Tag() string {
+	return EnvProviderTag
+}
+
 func (envProvider) Init(_ any) error {
 	return nil
 }
 
 func (ep envProvider) Provide(field reflect.StructField, v reflect.Value) error {
-	key := field.Tag.Get("env")
+	key := field.Tag.Get(EnvProviderTag)
 	if len(key) == 0 {
 		// field doesn't have a proper tag
 		return fmt.Errorf("%s: key is empty", EnvProviderName)

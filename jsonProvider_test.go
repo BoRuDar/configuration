@@ -3,6 +3,7 @@ package configuration
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -109,8 +110,10 @@ func TestFileProvider_Init(t *testing.T) {
 	err := New(i, NewJSONFileProvider("./testdata/dummy.file")).InitValues()
 	assert(t, "cannot init [JSONFileProvider] provider: file must have .json extension", err.Error())
 
-	err = New(i, NewJSONFileProvider("./testdata/input.json")).SetOptions(OnFailFnOpt(func(err error) {
-		assert(t, "configurator: field [Test] with tags [file_json:\"void.\"] cannot be set. Last Provider error: JSONFileProvider: findValStrByPath returns empty value", err.Error())
+	err = New(i, NewJSONFileProvider("./testdata/input.json")).SetOptions(OnFailFnOpt(func(field reflect.StructField, err error) {
+		assert(t, "Test", field.Name)
+		assert(t, `file_json:"void."`, fmt.Sprintf("%s", field.Tag))
+		assert(t, "JSONFileProvider: findValStrByPath returns empty value", err.Error())
 	})).InitValues()
 	assert(t, nil, err)
 
