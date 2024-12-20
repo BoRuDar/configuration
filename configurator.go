@@ -110,7 +110,7 @@ func (c *Configurator[T]) applyProviders(field reflect.StructField, v reflect.Va
 		}
 	}
 
-	return fmt.Errorf("filed [%s] with tags [%s] hasn't been set", field.Name, field.Tag)
+	return fmt.Errorf("field [%s] with tags [%s] hasn't been set", field.Name, field.Tag)
 }
 
 // FromEnvAndDefault is a shortcut for `New(cfg, NewEnvProvider(), NewDefaultProvider()).InitValues()`.

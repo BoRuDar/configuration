@@ -200,3 +200,60 @@ func Test_FromEnvAndDefault(t *testing.T) {
 	assert(t, cfg.Name, "Alex")
 	assert(t, cfg.Age, 24)
 }
+
+func TestConfigurator_NoTags(t *testing.T) {
+	t.Parallel()
+
+	type cfg struct {
+		Name string
+	}
+
+	_, err := New[cfg](NewDefaultProvider())
+	assert(t, "field [Name] with tags [] hasn't been set", err.Error())
+}
+
+func TestConfigurator_NoProviders(t *testing.T) {
+	t.Parallel()
+
+	_, err := New[struct{}]()
+	assert(t, ErrNoProviders, err)
+}
+
+func TestConfigurator_NoTags_Embedded(t *testing.T) {
+	t.Parallel()
+
+	type cfg struct {
+		S struct {
+			Name string
+		}
+	}
+
+	_, err := New[cfg](NewDefaultProvider())
+	assert(t, "field [Name] with tags [] hasn't been set", err.Error())
+}
+
+func TestConfigurator_Failed_Embedded(t *testing.T) {
+	t.Parallel()
+
+	type cfg struct {
+		S struct {
+			Name string `json:"name"`
+		}
+	}
+
+	_, err := New[cfg](NewDefaultProvider())
+	assert(t, "field [Name] with tags [json:\"name\"] hasn't been set", err.Error())
+}
+
+func TestConfigurator_NoTags_Embedded_ptr(t *testing.T) {
+	t.Parallel()
+
+	type cfg struct {
+		S *struct {
+			Name string
+		}
+	}
+
+	_, err := New[cfg](NewDefaultProvider())
+	assert(t, "field [Name] with tags [] hasn't been set", err.Error())
+}
