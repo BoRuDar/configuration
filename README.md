@@ -40,45 +40,43 @@ Available features:
 # Quick start
 Import path `github.com/BoRuDar/configuration/v5`
 ```go
-	// defining a struct
-cfg := struct {
+// defining a struct
+type Conf struct {
     Name     string `flag:"name"`
     LastName string `default:"defaultLastName"`
-    Age      byte   `env:"AGE_ENV"    default:"-1"`
+    Age      byte   `env:"AGE_ENV"               default:"-1"`
     BoolPtr  *bool  `default:"false"`
-    
-    ObjPtr *struct {
+    ObjPtr   *struct {
         F32       float32       `default:"32"`
         StrPtr    *string       `default:"str_ptr_test"`
-        HundredMS time.Duration `default:"100ms"`
+        HundredMS time.Duration `default:"100ms"` // nolint:stylecheck
     }
-
     Obj struct {
         IntPtr     *int16   `default:"123"`
         Beta       int      `file_json:"inside.beta"   default:"24"`
         StrSlice   []string `default:"one;two"`
         IntSlice   []int64  `default:"3; 4"`
-        unexported string   `xml:"ignored"`
+        unexported string   // ignored
     }
-}{}
+    URLs   []*string `default:"http://localhost:3000;1.2.3.4:8080"`
+    HostIP ipTest    `default:"127.0.0.3"`
+}
 
-configurator := configuration.New(
-    &cfg,
-    // order of execution will be preserved: 
-    configuration.NewFlagProvider(),             // 1st
-    configuration.NewEnvProvider(),              // 2nd 
-    configuration.NewJSONFileProvider(fileName), // 3rd 
-    configuration.NewDefaultProvider(),          // 4th
+cfg, err := New[Conf](  // specify the [T] of the structure to be returned
+    // order of execution will be preserved:
+    NewFlagProvider(),             // 1st
+    NewEnvProvider(),              // 2nd
+    NewJSONFileProvider(fileName), // 3rd
+    NewDefaultProvider(),          // 4th
 )
-
-if err := configurator.InitValues(); err != nil {
-    log.Fatalf("unexpected error: ", err)
+if err != nil {
+    t.Fatalf("unexpected error: %v", err)
 }
 ```
 
 If you need only ENV variables and default values you can use a shorter form:
 ```go
-err := configuration.FromEnvAndDefault(&cfg)
+cfg, err := configuration.FromEnvAndDefault[T]()
 ```
 
 
@@ -86,33 +84,23 @@ err := configuration.FromEnvAndDefault(&cfg)
 You can specify one or more providers. They will be executed in order of definition:
 ```go
 []Provider{
-    NewFlagProvider(&cfg), // 1
+    NewFlagProvider(),     // 1
     NewEnvProvider(),      // 2
     NewDefaultProvider(),  // 3
 } 
 ```
-If provider set value successfully next ones will not be executed (if flag provider from the sample above found a value env and default providers are skipped). 
-The value of first successfully executed provider will be set.
-If none of providers found value - an application will be terminated.
-This behavior can be changed with `configurator.OnFailFnOpt` option:
-```go
-err := configuration.New(
-    &cfg,
-    configuration.NewEnvProvider(),
-    configuration.NewDefaultProvider()).
-    SetOptions(
-        configuration.OnFailFnOpt(func(err error) {
-            log.Println(err)
-        }),
-    ).InitValues()
-```
+**IMPORTANT:** If provider sets value successfully next ones will **NOT** be executed 
+(if flag provider from the sample above finds the value - then the env and default providers are skipped). 
+The value of the first successfully executed provider will be set.
+If none of providers can set value - an error will be returned.
 
 
 ### Custom provider
-You can define a custom provider which should satisfy next interface:
+You can define a custom provider which should satisfy this interface:
 ```go
 type Provider interface {
     Name() string
+    Tag() string
     Init(ptr any) error
     Provide(field reflect.StructField, v reflect.Value) error
 }
@@ -127,6 +115,7 @@ struct {
     // ...
 }
 ```
+So `Name` will be set to "defaultName".
 
 
 ### Env provider
@@ -138,15 +127,17 @@ struct {
     // ...
 }
 ```
-Name inside tag `env:"<name>"` must be unique for each field. Only UPPER register for ENV vars is accepted:
+Name inside tag `env:"<name>"` must be unique for each field. 
+Only strings in **UPPER** register for ENV vars are accepted:
 ```bash
 bad_env_var_name=bad
+Also_Bad_Env_Var_Name=bad
 GOOD_ENV_VAR_NAME=good
 ```
 
 
 ### Flag provider
-Looks for `flag` tag and tries to set value from the command line flag `-first_name`
+Looks for `flag` tag and tries to set the value from the command line flag `-first_name`
 ```go
 struct {
     // ...
@@ -154,8 +145,8 @@ struct {
     // ...
 }
 ```
-Name inside tag `flag:"<name>"` must be unique for each field. `default_value` and `description` sections are `optional` and can be omitted.
-`NewFlagProvider(&cfg)` expects a pointer to the same object for initialization.
+Name inside tag `flag:"<name>"` must be unique for each field.
+`default_value` and `description` sections are `optional` and may be omitted.
 
 *Note*: if program is executed with `-help` or `-h` flag you will see all available flags with description:
 ```bash
@@ -164,7 +155,7 @@ Flags:
 ``` 
 And program execution will be terminated.
 #### Options for _NewFlagProvider_
-* WithFlagSet - sets a custom FlagSet
+* `WithFlagSet(s FlagSet)`  - sets a custom `FlagSet`
 
 
 ### JSON File provider 
