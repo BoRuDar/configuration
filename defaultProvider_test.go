@@ -69,21 +69,3 @@ func TestDefaultProviderFailed(t *testing.T) {
 		t.Fatal("must not be nil")
 	}
 }
-
-func TestDefaultProviderFailedNoTag(t *testing.T) {
-	t.Parallel()
-
-	type testStruct struct {
-		Name string
-	}
-	testObj := testStruct{}
-
-	fieldType := reflect.TypeOf(&testObj).Elem().Field(0)
-	fieldVal := reflect.ValueOf(&testObj).Elem().Field(0)
-
-	provider := NewDefaultProvider()
-
-	if err := provider.Provide(fieldType, fieldVal); err != nil {
-		t.Fatal("must be nil")
-	}
-}

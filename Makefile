@@ -10,7 +10,7 @@ coverage: test
 
 .PHONY: tools
 tools:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.56.2
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.2
 
 linter:
 	golangci-lint run ./...

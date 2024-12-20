@@ -94,7 +94,7 @@ func (fp flagProvider) initFlagProvider(ptr any) error {
 		return ErrInvalidInput
 	}
 
-	for i := 0; i < t.NumField(); i++ {
+	for i := range t.NumField() {
 		tField := t.Field(i)
 		if tField.Type.Kind() == reflect.Struct {
 			_ = fp.initFlagProvider(v.Field(i).Addr().Interface())
@@ -158,20 +158,20 @@ func (fp flagProvider) getFlagData(field reflect.StructField) (*flagData, error)
 
 	flagInfo := strings.Split(key, flagSeparator)
 	switch len(flagInfo) {
-	case 3: // nolint:gomnd
+	case 3: // nolint:mnd
 		return &flagData{
 			key:        strings.TrimSpace(flagInfo[0]),
 			defaultVal: strings.TrimSpace(flagInfo[1]),
 			usage:      flagInfo[2],
 		}, nil
 
-	case 2: // nolint:gomnd
+	case 2: // nolint:mnd
 		return &flagData{
 			key:        strings.TrimSpace(flagInfo[0]),
 			defaultVal: strings.TrimSpace(flagInfo[1]),
 		}, nil
 
-	case 1: // nolint:gomnd
+	case 1: // nolint:mnd
 		return &flagData{
 			key: strings.TrimSpace(flagInfo[0]),
 		}, nil

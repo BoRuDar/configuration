@@ -1,7 +1,6 @@
 package configuration
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 )
@@ -9,8 +8,8 @@ import (
 func fetchTagKey(t reflect.StructTag) map[string]struct{} {
 	keys := map[string]struct{}{}
 
-	pairs := strings.Split(fmt.Sprintf("%s", t), " ")
-	if len(pairs) < 1 {
+	pairs := strings.Split(string(t), " ")
+	if len(pairs) == 1 && pairs[0] == "" {
 		return keys
 	}
 

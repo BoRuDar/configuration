@@ -106,9 +106,9 @@ func TestFileProvider_Init(t *testing.T) {
 		Test int `file_json:"void."`
 	}
 
-	_, err := New[Cfg](NewJSONFileProvider("./testdata/dummy.file")).InitValues()
+	_, err := New[Cfg](NewJSONFileProvider("./testdata/dummy.file"))
 	assert(t, "cannot init [JSONFileProvider] provider: file must have .json extension", err.Error())
 
-	_, err = New[Cfg](NewJSONFileProvider("./testdata/malformed_input.json")).InitValues()
+	_, err = New[Cfg](NewJSONFileProvider("./testdata/malformed_input.json"))
 	assert(t, "cannot init [JSONFileProvider] provider: JSONFileProvider.Init: invalid character '}' looking for beginning of value", err.Error())
 }

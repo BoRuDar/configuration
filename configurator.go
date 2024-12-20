@@ -9,12 +9,14 @@ import (
 // New creates a new instance of the Configurator.
 func New[T any](
 	providers ...Provider, // providers will be executed in order of their declaration
-) *Configurator[T] {
-	return &Configurator[T]{
+) (*T, error) {
+	cfg := &Configurator[T]{
 		configPtr:           new(T),
 		providers:           providers,
 		registeredProviders: map[string]struct{}{},
 	}
+
+	return cfg.initValues()
 }
 
 type Configurator[T any] struct {
@@ -25,7 +27,7 @@ type Configurator[T any] struct {
 
 // InitValues sets values into struct field using given set of providers
 // respecting their order: first defined -> first executed
-func (c *Configurator[T]) InitValues() (*T, error) {
+func (c *Configurator[T]) initValues() (*T, error) {
 	if reflect.TypeOf(c.configPtr).Elem().Kind() != reflect.Struct {
 		return nil, ErrNotAStruct
 	}
@@ -63,7 +65,7 @@ func (c *Configurator[T]) fillUp(i any) error {
 		v = v.Elem()
 	}
 
-	for i := 0; i < t.NumField(); i++ {
+	for i := range t.NumField() {
 		var (
 			tField = t.Field(i)
 			vField = v.Field(i)
@@ -113,5 +115,5 @@ func (c *Configurator[T]) applyProviders(field reflect.StructField, v reflect.Va
 
 // FromEnvAndDefault is a shortcut for `New(cfg, NewEnvProvider(), NewDefaultProvider()).InitValues()`.
 func FromEnvAndDefault[T any]() (*T, error) {
-	return New[T](NewEnvProvider(), NewDefaultProvider()).InitValues()
+	return New[T](NewEnvProvider(), NewDefaultProvider())
 }

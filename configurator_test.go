@@ -46,15 +46,13 @@ func TestConfigurator(t *testing.T) {
 		HostIP ipTest    `default:"127.0.0.3"`
 	}
 
-	configurator := New[Conf](
+	cfg, err := New[Conf](
 		// order of execution will be preserved:
 		NewFlagProvider(),             // 1st
 		NewEnvProvider(),              // 2nd
 		NewJSONFileProvider(fileName), // 3rd
 		NewDefaultProvider(),          // 4th
 	)
-
-	cfg, err := configurator.InitValues()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -87,7 +85,7 @@ func TestConfigurator(t *testing.T) {
 func TestConfigurator_Errors(t *testing.T) {
 	t.Parallel()
 
-	_, err := New[int](NewDefaultProvider()).InitValues()
+	_, err := New[int](NewDefaultProvider())
 	if err == nil {
 		t.Fatal("expected error but got nil")
 	}
@@ -107,7 +105,7 @@ func TestEmbeddedFlags(t *testing.T) {
 	)
 	os.Args = []string{"smth", "-addr=addr_value"}
 
-	cfg, err := New[Config](NewFlagProvider()).InitValues()
+	cfg, err := New[Config](NewFlagProvider())
 	if err != nil {
 		t.Fatal("unexpected err: ", err)
 	}
@@ -123,12 +121,10 @@ func TestFallBackToDefault(t *testing.T) {
 		NameFlag string `flag:"name_flag||Some description" default:"default_val"`
 	}
 
-	c := New[Cfg](
+	cfg, err := New[Cfg](
 		NewFlagProvider(),
 		NewDefaultProvider(),
 	)
-
-	cfg, err := c.InitValues()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -175,14 +171,14 @@ func TestProviderName(t *testing.T) {
 func TestConfigurator_NameCollision(t *testing.T) {
 	t.Parallel()
 
-	_, err := New[struct{}](NewDefaultProvider(), NewDefaultProvider()).InitValues()
+	_, err := New[struct{}](NewDefaultProvider(), NewDefaultProvider())
 	assert(t, ErrProviderNameCollision, err)
 }
 
 func TestConfigurator_FailedProvider(t *testing.T) {
 	t.Parallel()
 
-	_, err := New[struct{}](NewJSONFileProvider("doesn't exist")).InitValues()
+	_, err := New[struct{}](NewJSONFileProvider("doesn't exist"))
 	assert(t, "cannot init [JSONFileProvider] provider: JSONFileProvider.Init: open doesn't exist: no such file or directory", err.Error())
 }
 
