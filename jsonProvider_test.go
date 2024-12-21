@@ -102,18 +102,28 @@ func TestFindValStrByPath(t *testing.T) {
 }
 
 func TestFileProvider_Init(t *testing.T) {
-	i := &struct {
+	type Cfg struct {
 		Test int `file_json:"void."`
-	}{}
+	}
 
-	err := New(i, NewJSONFileProvider("./testdata/dummy.file")).InitValues()
+	_, err := New[Cfg](NewJSONFileProvider("./testdata/dummy.file"))
 	assert(t, "cannot init [JSONFileProvider] provider: file must have .json extension", err.Error())
 
-	err = New(i, NewJSONFileProvider("./testdata/input.json")).SetOptions(OnFailFnOpt(func(err error) {
-		assert(t, "configurator: field [Test] with tags [file_json:\"void.\"] cannot be set. Last Provider error: JSONFileProvider: findValStrByPath returns empty value", err.Error())
-	})).InitValues()
-	assert(t, nil, err)
-
-	err = New(i, NewJSONFileProvider("./testdata/malformed_input.json")).InitValues()
+	_, err = New[Cfg](NewJSONFileProvider("./testdata/malformed_input.json"))
 	assert(t, "cannot init [JSONFileProvider] provider: JSONFileProvider.Init: invalid character '}' looking for beginning of value", err.Error())
+}
+
+func TestJSONProvider_empty_tag(t *testing.T) {
+	type testStruct struct {
+		Test int `file_json:""`
+	}
+
+	testObj := testStruct{}
+
+	fieldType := reflect.TypeOf(&testObj).Elem().Field(0)
+	fieldVal := reflect.ValueOf(&testObj).Elem().Field(0)
+
+	provider := NewJSONFileProvider("./testdata/input.json")
+	err := provider.Provide(fieldType, fieldVal)
+	assert(t, "JSONFileProvider: key is empty", err.Error())
 }

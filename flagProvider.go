@@ -11,6 +11,7 @@ import (
 
 const (
 	FlagProviderName = `FlagProvider`
+	FlagProviderTag  = `flag`
 	flagSeparator    = "|"
 )
 
@@ -36,7 +37,11 @@ func (flagProvider) Name() string {
 	return FlagProviderName
 }
 
-func (fp flagProvider) Init(ptr any) error {
+func (flagProvider) Tag() string {
+	return FlagProviderTag
+}
+
+func (fp flagProvider) Init(ptr any) (err error) {
 	if err := fp.initFlagProvider(ptr); err != nil {
 		return err
 	}
@@ -86,10 +91,10 @@ func (fp flagProvider) initFlagProvider(ptr any) error {
 		t = t.Elem()
 		v = v.Elem()
 	default:
-		return ErrNotAPointer
+		return ErrInvalidInput
 	}
 
-	for i := 0; i < t.NumField(); i++ {
+	for i := range t.NumField() {
 		tField := t.Field(i)
 		if tField.Type.Kind() == reflect.Struct {
 			_ = fp.initFlagProvider(v.Field(i).Addr().Interface())
@@ -146,27 +151,27 @@ func (fp flagProvider) Provide(field reflect.StructField, v reflect.Value) error
 }
 
 func (fp flagProvider) getFlagData(field reflect.StructField) (*flagData, error) {
-	key := field.Tag.Get("flag")
+	key := field.Tag.Get(FlagProviderTag)
 	if len(key) == 0 {
 		return nil, ErrNoTag
 	}
 
 	flagInfo := strings.Split(key, flagSeparator)
 	switch len(flagInfo) {
-	case 3: // nolint:gomnd
+	case 3: // nolint:mnd
 		return &flagData{
 			key:        strings.TrimSpace(flagInfo[0]),
 			defaultVal: strings.TrimSpace(flagInfo[1]),
 			usage:      flagInfo[2],
 		}, nil
 
-	case 2: // nolint:gomnd
+	case 2: // nolint:mnd
 		return &flagData{
 			key:        strings.TrimSpace(flagInfo[0]),
 			defaultVal: strings.TrimSpace(flagInfo[1]),
 		}, nil
 
-	case 1: // nolint:gomnd
+	case 1: // nolint:mnd
 		return &flagData{
 			key: strings.TrimSpace(flagInfo[0]),
 		}, nil

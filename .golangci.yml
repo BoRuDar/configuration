@@ -1,7 +1,7 @@
 run:
   timeout: 1m
   tests: true
-  go: '1.18'
+  go: '1.22'
   show-stats: true
 
 linters:
@@ -15,9 +15,8 @@ linters:
 #    - bodyclose
 #    - containedctx
 #    - contextcheck
-#    - copyloopvar
+    - copyloopvar
 #    - cyclop
-    - deadcode
 #    - decorder
 #    - depguard
 #    - dogsled
@@ -32,7 +31,7 @@ linters:
 #    - exhaustive
     - exhaustivestruct
     - exhaustruct
-#    - exportloopref
+    - exportloopref
 #    - forbidigo
 #    - forcetypeassert
     - funlen
@@ -48,7 +47,7 @@ linters:
 #    - gocyclo
     - godot
 #    - godox
-    - goerr113
+    - err113
 #    - gofmt
 #    - gofumpt
 #    - goheader
@@ -118,7 +117,7 @@ linters:
     - unparam
 #    - unused
 #    - usestdlibvars
-    - varcheck
+#    - varcheck
     - varnamelen
 #    - wastedassign
 #    - whitespace

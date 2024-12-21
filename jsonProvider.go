@@ -10,7 +10,10 @@ import (
 	"strings"
 )
 
-const JSONFileProviderName = `JSONFileProvider`
+const (
+	JSONFileProviderName = `JSONFileProvider`
+	JSONFileProviderTag  = `file_json`
+)
 
 var ErrFileMustHaveJSONExt = errors.New("file must have .json extension")
 
@@ -24,8 +27,12 @@ type FileProvider struct {
 	fileData any
 }
 
-func (fp *FileProvider) Name() string {
+func (*FileProvider) Name() string {
 	return JSONFileProviderName
+}
+
+func (*FileProvider) Tag() string {
+	return JSONFileProviderTag
 }
 
 func (fp *FileProvider) Init(_ any) error {
@@ -52,7 +59,7 @@ func (fp *FileProvider) Init(_ any) error {
 }
 
 func (fp *FileProvider) Provide(field reflect.StructField, v reflect.Value) error {
-	path := field.Tag.Get("file_json")
+	path := field.Tag.Get(JSONFileProviderTag)
 	if len(path) == 0 {
 		// field doesn't have a proper tag
 		return fmt.Errorf("%s: key is empty", JSONFileProviderName)

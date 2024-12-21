@@ -18,13 +18,13 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.22'
           cache: false
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v4
         with:
-          version: v1.56.2
+          version: v1.62.2
           install-mode: "goinstall"
           only-new-issues: false
           skip-cache: true

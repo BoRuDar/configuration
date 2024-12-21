@@ -3,6 +3,7 @@ package configuration
 import (
 	"net"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -25,7 +26,7 @@ func TestConfigurator(t *testing.T) {
 	}
 
 	// defining a struct
-	cfg := struct {
+	type Conf struct {
 		Name     string `flag:"name"`
 		LastName string `default:"defaultLastName"`
 		Age      byte   `env:"AGE_ENV"               default:"-1"`
@@ -40,29 +41,27 @@ func TestConfigurator(t *testing.T) {
 			Beta       int      `file_json:"inside.beta"   default:"24"`
 			StrSlice   []string `default:"one;two"`
 			IntSlice   []int64  `default:"3; 4"`
-			unexported string   `xml:"ignored"` // nolint:govet
+			unexported string   // ignored
 		}
 		URLs   []*string `default:"http://localhost:3000;1.2.3.4:8080"`
 		HostIP ipTest    `default:"127.0.0.3"`
-	}{}
+	}
 
-	configurator := New(
-		&cfg,
+	cfg, err := New[Conf](
 		// order of execution will be preserved:
 		NewFlagProvider(),             // 1st
 		NewEnvProvider(),              // 2nd
 		NewJSONFileProvider(fileName), // 3rd
 		NewDefaultProvider(),          // 4th
 	)
-
-	if err := configurator.InitValues(); err != nil {
+	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
 	assert(t, "flag_value", cfg.Name)
 	assert(t, "defaultLastName", cfg.LastName)
 	assert(t, byte(45), cfg.Age)
-	assert(t, true, cfg.BoolPtr != nil)
+	assert(t, true, cfg.BoolPtr != nil, "should not be nil")
 	assert(t, false, *cfg.BoolPtr)
 
 	assert(t, true, cfg.ObjPtr != nil)
@@ -87,33 +86,11 @@ func TestConfigurator(t *testing.T) {
 func TestConfigurator_Errors(t *testing.T) {
 	t.Parallel()
 
-	tests := map[string]struct {
-		input     any
-		providers []Provider
-	}{
-		"empty providers": {
-			input:     &struct{}{},
-			providers: []Provider{},
-		},
-		"non-pointer": {
-			input: struct{}{},
-			providers: []Provider{
-				NewDefaultProvider(),
-			},
-		},
+	_, err := New[int](NewDefaultProvider())
+	if err == nil {
+		t.Fatal("expected error but got nil")
 	}
-
-	for name, test := range tests {
-		test := test
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			err := New(test.input, test.providers...).InitValues()
-			if err == nil {
-				t.Fatal("expected error but got nil")
-			}
-		})
-	}
+	assert(t, ErrNotAStruct.Error(), err.Error())
 }
 
 func TestEmbeddedFlags(t *testing.T) {
@@ -129,8 +106,8 @@ func TestEmbeddedFlags(t *testing.T) {
 	)
 	os.Args = []string{"smth", "-addr=addr_value"}
 
-	var cfg Config
-	if err := New(&cfg, NewFlagProvider()).InitValues(); err != nil {
+	cfg, err := New[Config](NewFlagProvider())
+	if err != nil {
 		t.Fatal("unexpected err: ", err)
 	}
 
@@ -141,45 +118,19 @@ func TestEmbeddedFlags(t *testing.T) {
 // nolint:paralleltest
 func TestFallBackToDefault(t *testing.T) {
 	// defining a struct
-	cfg := struct {
-		NameFlag string `flag:"name_flag||Some description"   default:"default_val"`
-	}{}
+	type Cfg struct {
+		NameFlag string `flag:"name_flag||Some description" default:"default_val"`
+	}
 
-	c := New(&cfg,
+	cfg, err := New[Cfg](
 		NewFlagProvider(),
 		NewDefaultProvider(),
 	)
-
-	if err := c.InitValues(); err != nil {
+	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
 	assert(t, "default_val", cfg.NameFlag)
-}
-
-func TestSetOnFailFn(t *testing.T) {
-	t.Parallel()
-
-	cfg := struct {
-		Name string `default:"test_name"`
-	}{}
-	onFailFn := func(err error) {
-		if err != nil && err.Error() != "configurator: field [Name] with tags [default:\"test_name\"] cannot be set. Last Provider error: no tag" {
-			t.Fatalf("unexpected error: %v", err)
-		}
-	}
-
-	c := New(
-		&cfg,
-		NewFlagProvider(),
-	).
-		SetOptions(
-			OnFailFnOpt(onFailFn),
-		)
-
-	if err := c.InitValues(); err != nil {
-		t.Fatal("unexpected err: ", err)
-	}
 }
 
 func TestProviderName(t *testing.T) {
@@ -221,14 +172,14 @@ func TestProviderName(t *testing.T) {
 func TestConfigurator_NameCollision(t *testing.T) {
 	t.Parallel()
 
-	err := New(&struct{}{}, NewDefaultProvider(), NewDefaultProvider()).InitValues()
+	_, err := New[struct{}](NewDefaultProvider(), NewDefaultProvider())
 	assert(t, ErrProviderNameCollision, err)
 }
 
 func TestConfigurator_FailedProvider(t *testing.T) {
 	t.Parallel()
 
-	err := New(&struct{}{}, NewJSONFileProvider("doesn't exist")).InitValues()
+	_, err := New[struct{}](NewJSONFileProvider("doesn't exist"))
 	assert(t, "cannot init [JSONFileProvider] provider: JSONFileProvider.Init: open doesn't exist: no such file or directory", err.Error())
 }
 
@@ -242,12 +193,110 @@ func Test_FromEnvAndDefault(t *testing.T) {
 		Age  int    `env:"AGE"     default:"42"`
 	}
 
-	cfg := st{}
-
-	if err := FromEnvAndDefault(&cfg); err != nil {
+	cfg, err := FromEnvAndDefault[st]()
+	if err != nil {
 		t.Fatal("unexpected err", err)
 	}
 
 	assert(t, cfg.Name, "Alex")
 	assert(t, cfg.Age, 24)
+}
+
+func TestConfigurator_NoTags(t *testing.T) {
+	t.Parallel()
+
+	type cfg struct {
+		Name string
+	}
+
+	_, err := New[cfg](NewDefaultProvider())
+	assert(t, "field [Name] with tags [] hasn't been set", err.Error())
+}
+
+func TestConfigurator_NoProviders(t *testing.T) {
+	t.Parallel()
+
+	_, err := New[struct{}]()
+	assert(t, ErrNoProviders, err)
+}
+
+func TestConfigurator_NoTags_Embedded(t *testing.T) {
+	t.Parallel()
+
+	type cfg struct {
+		S struct {
+			Name string
+		}
+	}
+
+	_, err := New[cfg](NewDefaultProvider())
+	assert(t, "field [Name] with tags [] hasn't been set", err.Error())
+}
+
+func TestConfigurator_Failed_Embedded(t *testing.T) {
+	t.Parallel()
+
+	type cfg struct {
+		S struct {
+			Name string `json:"name"`
+		}
+	}
+
+	_, err := New[cfg](NewDefaultProvider())
+	assert(t, "field [Name] with tags [json:\"name\"] hasn't been set", err.Error())
+}
+
+func TestConfigurator_NoTags_Embedded_ptr(t *testing.T) {
+	t.Parallel()
+
+	type cfg struct {
+		S *struct {
+			Name string
+		}
+	}
+
+	_, err := New[cfg](NewDefaultProvider())
+	assert(t, "field [Name] with tags [] hasn't been set", err.Error())
+}
+
+type _mockProvider struct{}
+
+func (_mockProvider) Name() string {
+	return "mock"
+}
+
+func (_mockProvider) Tag() string {
+	return DefaultProviderTag
+}
+
+func (_mockProvider) Init(_ any) error {
+	return nil
+}
+
+func (dp _mockProvider) Provide(_ reflect.StructField, _ reflect.Value) error {
+	return nil
+}
+
+func TestConfigurator_Tags_collision(t *testing.T) {
+	t.Parallel()
+
+	type cfg struct {
+		Name string `default:"name"`
+	}
+
+	_, err := New[cfg](NewDefaultProvider(), _mockProvider{})
+	assert(t, ErrProviderTagCollision, err)
+}
+
+func TestConfigurator_FailedToSetAll(t *testing.T) {
+	t.Parallel()
+
+	type cfg struct {
+		S struct {
+			Name string `env:"NOPE_ENV_BAD" default:""`
+		}
+	}
+
+	_, err := FromEnvAndDefault[cfg]()
+	assert(t, "field [Name] with tags [env:\"NOPE_ENV_BAD\" default:\"\"] hasn't been set", err.Error())
 }

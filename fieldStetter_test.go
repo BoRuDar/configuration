@@ -486,8 +486,7 @@ func (it *ipsTest) SetField(sf reflect.StructField, val reflect.Value, valStr st
 func Test_CustomFieldSetter(t *testing.T) {
 	t.Parallel()
 
-	var cfg testCfgSetField
-	err := FromEnvAndDefault(&cfg)
+	cfg, err := FromEnvAndDefault[testCfgSetField]()
 
 	assert(t, nil, err)
 	assert(t, "127.0.0.1", net.IP(*cfg.HostOne).String())

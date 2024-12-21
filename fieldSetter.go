@@ -100,40 +100,40 @@ func setSlice(t reflect.Type, v reflect.Value, val string) error {
 	switch t.Elem().Kind() {
 	case reflect.String:
 		slice = reflect.MakeSlice(t, size, size)
-		for i := 0; i < size; i++ {
+		for i := range size {
 			slice.Index(i).SetString(items[i])
 		}
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		slice = reflect.MakeSlice(t, size, size)
-		for i := 0; i < size; i++ {
+		for i := range size {
 			val, _ := strconv.ParseInt(items[i], 10, 64)
 			slice.Index(i).SetInt(val)
 		}
 
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		slice = reflect.MakeSlice(t, size, size)
-		for i := 0; i < size; i++ {
+		for i := range size {
 			val, _ := strconv.ParseUint(items[i], 10, 64)
 			slice.Index(i).SetUint(val)
 		}
 
 	case reflect.Float32, reflect.Float64:
 		slice = reflect.MakeSlice(t, size, size)
-		for i := 0; i < size; i++ {
+		for i := range size {
 			val, _ := strconv.ParseFloat(items[i], 64)
 			slice.Index(i).SetFloat(val)
 		}
 	case reflect.Bool:
 		slice = reflect.MakeSlice(t, size, size)
-		for i := 0; i < size; i++ {
+		for i := range size {
 			val, _ := strconv.ParseBool(items[i])
 			slice.Index(i).SetBool(val)
 		}
 
 	case reflect.Pointer:
 		slice = reflect.MakeSlice(t, size, size)
-		for i := 0; i < size; i++ {
+		for i := range size {
 			err := setPtrValue(slice.Index(i).Type(), slice.Index(i), items[i])
 			if err != nil {
 				return fmt.Errorf("setSlice: cannot set type [%s] at index [%d]", slice.Index(i).Type(), i)

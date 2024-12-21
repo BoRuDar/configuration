@@ -56,7 +56,7 @@ func TestDefaultProviderFailed(t *testing.T) {
 	t.Parallel()
 
 	type testStruct struct {
-		Name string
+		Name string `default:""`
 	}
 	testObj := testStruct{}
 
