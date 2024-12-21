@@ -3,6 +3,7 @@ package configuration
 import (
 	"net"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -256,4 +257,46 @@ func TestConfigurator_NoTags_Embedded_ptr(t *testing.T) {
 
 	_, err := New[cfg](NewDefaultProvider())
 	assert(t, "field [Name] with tags [] hasn't been set", err.Error())
+}
+
+type _mockProvider struct{}
+
+func (_mockProvider) Name() string {
+	return "mock"
+}
+
+func (_mockProvider) Tag() string {
+	return DefaultProviderTag
+}
+
+func (_mockProvider) Init(_ any) error {
+	return nil
+}
+
+func (dp _mockProvider) Provide(_ reflect.StructField, _ reflect.Value) error {
+	return nil
+}
+
+func TestConfigurator_Tags_collision(t *testing.T) {
+	t.Parallel()
+
+	type cfg struct {
+		Name string `default:"name"`
+	}
+
+	_, err := New[cfg](NewDefaultProvider(), _mockProvider{})
+	assert(t, ErrProviderTagCollision, err)
+}
+
+func TestConfigurator_FailedToSetAll(t *testing.T) {
+	t.Parallel()
+
+	type cfg struct {
+		S struct {
+			Name string `env:"NOPE_ENV_BAD" default:""`
+		}
+	}
+
+	_, err := FromEnvAndDefault[cfg]()
+	assert(t, "field [Name] with tags [env:\"NOPE_ENV_BAD\" default:\"\"] hasn't been set", err.Error())
 }

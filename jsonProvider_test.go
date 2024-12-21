@@ -112,3 +112,18 @@ func TestFileProvider_Init(t *testing.T) {
 	_, err = New[Cfg](NewJSONFileProvider("./testdata/malformed_input.json"))
 	assert(t, "cannot init [JSONFileProvider] provider: JSONFileProvider.Init: invalid character '}' looking for beginning of value", err.Error())
 }
+
+func TestJSONProvider_empty_tag(t *testing.T) {
+	type testStruct struct {
+		Test int `file_json:""`
+	}
+
+	testObj := testStruct{}
+
+	fieldType := reflect.TypeOf(&testObj).Elem().Field(0)
+	fieldVal := reflect.ValueOf(&testObj).Elem().Field(0)
+
+	provider := NewJSONFileProvider("./testdata/input.json")
+	err := provider.Provide(fieldType, fieldVal)
+	assert(t, "JSONFileProvider: key is empty", err.Error())
+}

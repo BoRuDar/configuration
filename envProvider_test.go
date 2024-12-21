@@ -44,3 +44,18 @@ func TestEnvProviderFailed(t *testing.T) {
 		t.Fatal("must NOT be nil")
 	}
 }
+
+func TestEnvProvider_EmptyKey(t *testing.T) {
+	type testStruct struct {
+		Name string `env:""`
+	}
+	testObj := testStruct{}
+
+	fieldType := reflect.TypeOf(&testObj).Elem().Field(0)
+	fieldVal := reflect.ValueOf(&testObj).Elem().Field(0)
+
+	provider := NewEnvProvider()
+
+	err := provider.Provide(fieldType, fieldVal)
+	assert(t, "EnvProvider: key is empty", err.Error())
+}
