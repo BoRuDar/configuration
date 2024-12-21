@@ -12,4 +12,5 @@ var (
 	ErrInvalidInput          = errors.New("invalid input")
 	ErrNoProviders           = errors.New("no providers")
 	ErrProviderNameCollision = errors.New("provider name collision")
+	ErrProviderTagCollision  = errors.New("provider tag collision")
 )

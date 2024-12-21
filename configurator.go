@@ -14,6 +14,7 @@ func New[T any](
 		configPtr:           new(T),
 		providers:           providers,
 		registeredProviders: map[string]struct{}{},
+		registeredTags:      map[string]struct{}{},
 	}
 
 	return cfg.initValues()
@@ -22,6 +23,7 @@ func New[T any](
 type Configurator[T any] struct {
 	configPtr           *T
 	providers           []Provider
+	registeredTags      map[string]struct{}
 	registeredProviders map[string]struct{}
 }
 
@@ -41,6 +43,11 @@ func (c *Configurator[T]) initValues() (*T, error) {
 			return nil, ErrProviderNameCollision
 		}
 		c.registeredProviders[p.Name()] = struct{}{}
+
+		if _, ok := c.registeredTags[p.Tag()]; ok {
+			return nil, ErrProviderTagCollision
+		}
+		c.registeredTags[p.Tag()] = struct{}{}
 
 		if err := p.Init(c.configPtr); err != nil {
 			return nil, fmt.Errorf("cannot init [%s] provider: %w", p.Name(), err)
@@ -100,7 +107,7 @@ func (c *Configurator[T]) applyProviders(field reflect.StructField, v reflect.Va
 	}
 
 	for _, provider := range c.providers {
-		if _, found := fetchTagKey(field.Tag)[provider.Tag()]; !found {
+		if _, found := fetchTagKey(field.Tag, c.registeredTags)[provider.Tag()]; !found {
 			// skip provider if it's not specified in tags
 			continue
 		}
