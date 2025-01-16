@@ -3,6 +3,7 @@
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/6295/badge)](https://www.bestpractices.dev/projects/6295)
 [![GoDoc](https://godoc.org/github.com/BoRuDar/configuration?status.png)](https://godoc.org/github.com/BoRuDar/configuration/v4)
 [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go)
+![BuyMeACoffee](https://www.buymeacoffee.com/borudar)
 
 
 # Configuration
